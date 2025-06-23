@@ -12,7 +12,8 @@
 			".vercel",
 			".next",
 			"components/ui",
-			"app/globals.css"
+			"app/globals.css",
+			"prisma"
 		]
 	},
 	"formatter": {

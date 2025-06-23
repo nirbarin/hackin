@@ -1,4 +1,7 @@
+import LoginButton from "@/components/identify/login"
+import LogoutButton from "@/components/identify/logout"
 import ThemeToggle from "@/components/theme/toggle"
+import { getCurrentSession } from "@/lib/session"
 import { Bot, Brain, Compass, Github, Hammer, Users } from "lucide-react"
 
 const features = [
@@ -50,7 +53,7 @@ function Features() {
 	return (
 		<div className="container mx-auto max-w-7xl">
 			<h2 className="text-3xl font-medium md:pl-5 lg:text-4xl">
-        Hackin&apos;s Core Features
+				Hackin&apos;s Core Features
 			</h2>
 			<div className="mx-auto mt-14 grid gap-x-20 gap-y-8 md:grid-cols-2 md:gap-y-6 lg:mt-20">
 				{features.map(feature => (
@@ -76,9 +79,12 @@ function Features() {
 	)
 }
 
-export default function Index() {
+export default async function Index() {
+	const { user } = await getCurrentSession()
+
 	return (
 		<div className="min-h-[100dvh] flex flex-col items-center justify-center p-10 relative">
+			<div className="py-5">{!user ? <LoginButton /> : <LogoutButton />}</div>
 			<Features />
 			<ThemeToggle className="absolute top-5 right-5" />
 		</div>
