@@ -30,7 +30,7 @@ export async function GET(request: Request): Promise<Response> {
 	try {
 		tokens = await github.validateAuthorizationCode(code)
 	} catch (error) {
-        console.error("Error validating authorization code:", error)
+		console.error("Error validating authorization code:", error)
 		return new Response(null, {
 			status: 400,
 		})
