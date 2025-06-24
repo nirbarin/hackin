@@ -4,10 +4,12 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev --turbopack",
+		"wifi": "bun dev -H 0.0.0.0 --port 3000",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"fix": "bunx @biomejs/biome check --write . --verbose"
+		"fix": "bunx @biomejs/biome check --write . --verbose",
+		"db": "bunx prisma@latest generate && bunx prisma@latest migrate dev && bunx prisma@latest db seed"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.1.1",
@@ -39,6 +41,7 @@
 		"@radix-ui/react-toggle-group": "^1.1.10",
 		"@radix-ui/react-tooltip": "^1.2.7",
 		"@t3-oss/env-nextjs": "^0.13.8",
+		"ai": "^4.3.16",
 		"arctic": "^3.7.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",

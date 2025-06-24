@@ -9,11 +9,19 @@ generator client {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  githubId Int    @unique @map("github_id")
-  username String
+  id       Int      @id @default(autoincrement())
+  githubId Int      @unique @map("github_id")
+  avatar   String?
+  name     String?
+  username String   @unique
+  skills   String[]
 
   sessions Session[]
+  projects Project[]
+  ideaChats IdeaChat[]
+  stepChats StepChat[]
+  pitchDialogs PitchDialog[]
+  teams    Team[]
 
   @@map("user")
 }
@@ -25,4 +33,123 @@ model Session {
   expiresAt DateTime @map("expires_at")
 
   @@map("session")
+}
+
+model Project {
+  id              Int      @id @default(autoincrement())
+  hackathonName   String   @map("hackathon_name")
+  theme           String?  @map("theme")
+  suggestedTech   String?  @map("suggested_tech")
+  judgingCriteria String?  @map("judging_criteria")
+  additionalData  String?  @map("additional_data")
+  submissionTime  DateTime @map("submission_time")
+
+  actualTech String? @map("actual_tech")
+
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  teamId Int?  @map("team_id")
+  team   Team? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  ideas Idea[]
+  steps Step[]
+  pitch Pitch[]
+
+  @@map("project")
+}
+
+model Idea {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String
+  content     String
+  isFinal     Boolean @default(false)
+
+  chats IdeaChat[]
+
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("idea")
+}
+
+model IdeaChat {
+  id        Int      @id @default(autoincrement())
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ideaId Int
+  idea   Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("idea_chat")
+}
+
+model Step {
+  id      Int     @id @default(autoincrement())
+  content String
+  isDone  Boolean @default(false) @map("is_done")
+  order   Int?
+
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  chats StepChat[]
+
+  @@map("step")
+}
+
+model StepChat {
+  id        Int      @id @default(autoincrement())
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  stepId Int
+  step   Step @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("step_chat")
+}
+
+model Team {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  members  User[]
+  projects Project[]
+
+  @@map("team")
+}
+
+model Pitch {
+  id       Int     @id @default(autoincrement())
+  pptUrl   String? @map("ppt_url")
+
+  PitchDialog PitchDialog[]
+
+  projectId Int     @unique @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("pitch")
+}
+
+model PitchDialog {
+  id        Int      @id @default(autoincrement())
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  pitchId Int
+  pitch   Pitch @relation(fields: [pitchId], references: [id], onDelete: Cascade)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  aiOrUser String @map("ai_or_user")
+
+  @@map("pitch_chat")
 }

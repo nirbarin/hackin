@@ -1,6 +1,6 @@
 import { getCurrentSession } from "@/lib/session"
-import { redirect } from "next/navigation"
 import type { User } from "@/lib/session"
+import { redirect } from "next/navigation"
 import { AuthContextProvider } from "./context"
 
 interface AuthProviderProps {
@@ -14,11 +14,7 @@ export async function AuthProvider({ children }: AuthProviderProps) {
 		redirect("/identify/github")
 	}
 
-	return (
-		<AuthContextProvider user={user}>
-			{children}
-		</AuthContextProvider>
-	)
+	return <AuthContextProvider user={user}>{children}</AuthContextProvider>
 }
 
-export { type User }
+export type { User }

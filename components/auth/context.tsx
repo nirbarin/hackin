@@ -14,11 +14,12 @@ interface AuthContextProviderProps {
 	user: User
 }
 
-export function AuthContextProvider({ children, user }: AuthContextProviderProps) {
+export function AuthContextProvider({
+	children,
+	user,
+}: AuthContextProviderProps) {
 	return (
-		<AuthContext.Provider value={{ user }}>
-			{children}
-		</AuthContext.Provider>
+		<AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>
 	)
 }
 

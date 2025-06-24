@@ -64,9 +64,7 @@ export default function ProjectPage() {
 						onSubmit={form.handleSubmit(onSubmit)}
 						className="space-y-8 max-w-3xl mx-auto p-10"
 					>
-					<h1 className="text-3xl font-semibold mb-8">
-						Create a Project
-					</h1>
+						<h1 className="text-3xl font-semibold mb-8">Create a Project</h1>
 						<FormField
 							control={form.control}
 							name="hackathon_name"
@@ -192,7 +190,9 @@ export default function ProjectPage() {
 								</FormItem>
 							)}
 						/>
-						<Button type="submit" className="w-full">Submit</Button>
+						<Button type="submit" className="w-full">
+							Submit
+						</Button>
 					</form>
 				</Form>
 			)}

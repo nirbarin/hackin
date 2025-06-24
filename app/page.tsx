@@ -1,8 +1,15 @@
-import LoginButton from "@/components/identify/login"
-import LogoutButton from "@/components/identify/logout"
+import LinkButton from "@/components/link/button"
 import ThemeToggle from "@/components/theme/toggle"
-import { getCurrentSession } from "@/lib/session"
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { Bot, Brain, Compass, Github, Hammer, Users } from "lucide-react"
+import Link from "next/link"
 
 const features = [
 	{
@@ -49,44 +56,144 @@ const features = [
 	},
 ]
 
+export default async function Index() {
+	return (
+		<div className="min-h-[100dvh] flex flex-col relative">
+			<Nav />
+			<Hero />
+			<div className="w-[80vw] max-w-[1500px] m-auto">
+				<Separator />
+			</div>
+			<Features />
+			<div className="w-[80vw] max-w-[1500px] m-auto">
+				<Separator />
+			</div>
+			<PipelineFlowchart />
+			<div className="w-[80vw] max-w-[1500px] m-auto">
+				<Separator />
+			</div>
+			<Footer />
+		</div>
+	)
+}
+
+export function Nav() {
+	return (
+		<div className="flex w-full text-xl font-semibold p-5 justify-between items-center">
+			<Link href="/" className="hover:opacity-80 transition-opacity">
+				hackin.
+				<span className="text-[#3348B8] dark:text-[#4696ff]">
+					nirbar
+				</span>
+				.in
+			</Link>
+			<div className="grow" />
+			<ThemeToggle />
+		</div>
+	)
+}
+
+function Hero() {
+	return (
+		<div className="flex flex-col items-center justify-center w-full min-h-[80dvh] gap-7 p-8">
+			<h1 className="text-2xl md:text-4xl font-semibold text-center ">
+				Actually F**king Ship Your Hackathon Project
+			</h1>
+			<h2 className="text-lg md:text-xl text-center text-muted-foreground">
+				<p className="font-semibold">From idea to demo in record time</p>
+				<Link
+					href="https://hackin.nirbar.in"
+					className="text-foreground hover:underline decoration-2 underline-offset-4"
+				>
+					Hackin
+				</Link>{" "}
+				guides your team through every step of the hackathon journey
+				<br />
+				with AI powered insights and contextual help
+			</h2>
+			<div className="flex flex-col md:flex-row gap-4 items-center justify-center w-[80vw] max-w-[1000px]">
+				<LinkButton
+					to="/app"
+					variant="default"
+					className="w-full max-w-[300px]"
+				>
+					let&apos;s goooo
+				</LinkButton>
+				<LinkButton
+					to="https://github.com/nirbarin/hackin"
+					className="w-full max-w-[300px]"
+				>
+					<Github />
+					star star please
+					<Github />
+				</LinkButton>
+			</div>
+		</div>
+	)
+}
+
 function Features() {
 	return (
-		<div className="container mx-auto max-w-7xl">
-			<h2 className="text-3xl font-medium md:pl-5 lg:text-4xl">
-				Hackin&apos;s Core Features
-			</h2>
-			<div className="mx-auto mt-14 grid gap-x-20 gap-y-8 md:grid-cols-2 md:gap-y-6 lg:mt-20">
+		<div className="flex flex-col items-center justify-center w-[80vw] gap-7 py-10 max-w-[1500px] mx-auto">
+			<h2 className="text-3xl font-medium lg:text-4xl">Feature Showcase</h2>
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:mt-20 w-full">
 				{features.map(feature => (
-					<div
-						className="flex gap-6 rounded-lg md:block md:p-5"
-						key={feature.key}
-					>
-						<span className="mb-8 flex size-10 shrink-0 items-center justify-center rounded-full bg-accent md:size-12">
-							{feature.icon}
-						</span>
-						<div>
-							<h3 className="font-medium md:mb-2 md:text-xl">
+					<Card key={feature.key} className="transition-all hover:shadow-lg">
+						<CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
+							<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent md:size-12">
+								{feature.icon}
+							</span>
+							<CardTitle className="text-lg md:text-xl">
 								{feature.title}
-							</h3>
-							<p className="text-sm text-muted-foreground md:text-base">
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<CardDescription className="text-sm md:text-base">
 								{feature.description}
-							</p>
-						</div>
-					</div>
+							</CardDescription>
+						</CardContent>
+					</Card>
 				))}
 			</div>
 		</div>
 	)
 }
 
-export default async function Index() {
-	const { user } = await getCurrentSession()
-
+function PipelineFlowchart() {
 	return (
-		<div className="min-h-[100dvh] flex flex-col items-center justify-center p-10 relative">
-			<div className="py-5">{!user ? <LoginButton /> : <LogoutButton />}</div>
-			<Features />
-			<ThemeToggle className="absolute top-5 right-5" />
+		<div className="flex flex-col items-center justify-center w-full min-h-[80dvh] gap-7 p-8">
+			<h2 className="text-2xl md:text-4xl font-semibold text-center">
+				Pipeline Flowchart
+			</h2>
+			<p className="text-lg md:text-xl text-center text-muted-foreground">
+				How does Hackin guide you through every step of the hackathon journey?
+			</p>
+			<Card className="w-full max-w-[800px] h-[400px] flex items-center justify-center">
+				placeholder for flowchart
+			</Card>
+		</div>
+	)
+}
+
+function Footer() {
+	return (
+		<div className="flex flex-col items-center justify-center w-fit m-auto py-10 gap-2">
+			<div className="flex w-full text-xl font-semibold gap-2 justify-between items-center">
+				hackin [ a
+				<Link href="https://nirbar.in" className="text-[#3348B8] dark:text-[#4696ff]">nirbar</Link>
+				product ]
+			</div>
+			<div className="flex items-center justify-center gap-2 text-muted-foreground">
+				<LinkButton to="/team" variant="link">
+					team
+				</LinkButton>
+				<LinkButton to="/money" variant="link">
+					money
+				</LinkButton>
+				<LinkButton to="/legal" variant="link">
+					legal
+				</LinkButton>
+			</div>
 		</div>
 	)
 }
