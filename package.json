@@ -8,6 +8,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
+		"postinstall": "prisma generate",
 		"fix": "bunx @biomejs/biome check --write . --verbose",
 		"db": "bunx prisma@latest generate && bunx prisma@latest migrate dev && bunx prisma@latest db seed"
 	},
