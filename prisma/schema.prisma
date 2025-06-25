@@ -4,8 +4,9 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "./generated"
+  provider      = "prisma-client-js"
+  output        = "./generated"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x"]
 }
 
 model User {
@@ -16,12 +17,12 @@ model User {
   username String   @unique
   skills   String[]
 
-  sessions Session[]
-  projects Project[]
-  ideaChats IdeaChat[]
-  stepChats StepChat[]
+  sessions     Session[]
+  projects     Project[]
+  ideaChats    IdeaChat[]
+  stepChats    StepChat[]
   pitchDialogs PitchDialog[]
-  teams    Team[]
+  teams        Team[]
 
   @@map("user")
 }
@@ -127,8 +128,8 @@ model Team {
 }
 
 model Pitch {
-  id       Int     @id @default(autoincrement())
-  pptUrl   String? @map("ppt_url")
+  id     Int     @id @default(autoincrement())
+  pptUrl String? @map("ppt_url")
 
   PitchDialog PitchDialog[]
 
