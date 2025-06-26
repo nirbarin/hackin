@@ -82,9 +82,7 @@ export function Nav() {
 		<div className="flex w-full text-xl font-semibold p-5 justify-between items-center">
 			<Link href="/" className="hover:opacity-80 transition-opacity">
 				hackin.
-				<span className="text-[#3348B8] dark:text-[#4696ff]">
-					nirbar
-				</span>
+				<span className="text-[#3348B8] dark:text-[#4696ff]">nirbar</span>
 				.in
 			</Link>
 			<div className="grow" />
@@ -180,7 +178,12 @@ function Footer() {
 		<div className="flex flex-col items-center justify-center w-fit m-auto py-10 gap-2">
 			<div className="flex w-full text-xl font-semibold gap-2 justify-between items-center">
 				hackin [ a
-				<Link href="https://nirbar.in" className="text-[#3348B8] dark:text-[#4696ff]">nirbar</Link>
+				<Link
+					href="https://nirbar.in"
+					className="text-[#3348B8] dark:text-[#4696ff]"
+				>
+					nirbar
+				</Link>
 				product ]
 			</div>
 			<div className="flex items-center justify-center gap-2 text-muted-foreground">

@@ -5,11 +5,5 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode
 }>) {
-	return (
-		<AuthProvider>
-			<div className="flex flex-col min-h-[100dvh]">
-				<div className="flex flex-col grow">{children}</div>
-			</div>
-		</AuthProvider>
-	)
+	return <AuthProvider>{children}</AuthProvider>
 }

@@ -1,13 +1,7 @@
-import { PrismaClient } from "../prisma/generated"
+import { drizzle } from "drizzle-orm/postgres-js"
+import postgres from "postgres"
+import { env } from "./env"
+import * as schema from "./schema"
 
-const globalForPrisma = globalThis as unknown as {
-	prisma: PrismaClient | undefined
-}
-
-export const prisma =
-	globalForPrisma.prisma ??
-	new PrismaClient({
-		log: ["query"],
-	})
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
+const queryClient = postgres(env.DATABASE_URL, { prepare: false })
+export const db = drizzle(queryClient, { schema })

@@ -2,9 +2,14 @@ import { github } from "@/lib/oauth"
 import { generateState } from "arctic"
 import { cookies } from "next/headers"
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
+	const url = new URL(request.url)
+	const redirectTo = url.searchParams.get("redirect") || "/home"
+
+	console.log("GitHub OAuth initiated with redirect:", redirectTo)
+
 	const state = generateState()
-	const url = github.createAuthorizationURL(state, [])
+	const authUrl = github.createAuthorizationURL(state, [])
 
 	const cookieStore = await cookies()
 	cookieStore.set("github_oauth_state", state, {
@@ -15,10 +20,25 @@ export async function GET(): Promise<Response> {
 		sameSite: "lax",
 	})
 
+	cookieStore.set("github_oauth_redirect", redirectTo, {
+		path: "/",
+		secure: process.env.NODE_ENV === "production",
+		httpOnly: true,
+		maxAge: 60 * 10,
+		sameSite: "lax",
+	})
+
+	console.log(
+		"Set cookies - state:",
+		`${state.substring(0, 10)}...`,
+		"redirect:",
+		redirectTo,
+	)
+
 	return new Response(null, {
 		status: 302,
 		headers: {
-			Location: url.toString(),
+			Location: authUrl.toString(),
 		},
 	})
 }

@@ -1,10 +1,12 @@
-import { prisma } from "@/lib/db"
+import { db } from "@/lib/db"
 import { github } from "@/lib/oauth"
+import { users } from "@/lib/schema"
 import {
 	createSession,
 	generateSessionToken,
 	setSessionTokenCookie,
 } from "@/lib/session"
+import { eq } from "drizzle-orm"
 import { cookies } from "next/headers"
 
 import type { OAuth2Tokens } from "arctic"
@@ -15,13 +17,28 @@ export async function GET(request: Request): Promise<Response> {
 	const state = url.searchParams.get("state")
 	const cookieStore = await cookies()
 	const storedState = cookieStore.get("github_oauth_state")?.value ?? null
+	const redirectTo = cookieStore.get("github_oauth_redirect")?.value ?? "/app"
+
+	console.log("OAuth callback:", {
+		code: !!code,
+		state: !!state,
+		storedState: !!storedState,
+		redirectTo,
+	})
+
 	if (code === null || state === null || storedState === null) {
-		return new Response(null, {
+		console.log("Missing parameters:", {
+			code: !!code,
+			state: !!state,
+			storedState: !!storedState,
+		})
+		return new Response("Missing required parameters", {
 			status: 400,
 		})
 	}
 	if (state !== storedState) {
-		return new Response(null, {
+		console.log("State mismatch:", { received: state, stored: storedState })
+		return new Response("State mismatch", {
 			status: 400,
 		})
 	}
@@ -44,43 +61,58 @@ export async function GET(request: Request): Promise<Response> {
 	const githubUserId = githubUser.id
 	const githubUsername = githubUser.login
 
-	const existingUser = await prisma.user.findUnique({
-		where: {
-			githubId: githubUserId,
-		},
-	})
+	const existingUser = await db
+		.select()
+		.from(users)
+		.where(eq(users.githubId, githubUserId))
+		.limit(1)
 
-	if (existingUser !== null) {
+	if (existingUser.length > 0) {
+		console.log("Existing user found:", existingUser[0].username)
 		const sessionToken = generateSessionToken()
-		const session = await createSession(sessionToken, existingUser.id)
+		const session = await createSession(sessionToken, existingUser[0].id)
 		await setSessionTokenCookie(sessionToken, session.expiresAt)
+
+		console.log("Session created and cookie set. Redirecting to:", redirectTo)
+
+		cookieStore.delete("github_oauth_redirect")
+		cookieStore.delete("github_oauth_state")
+
 		return new Response(null, {
 			status: 302,
 			headers: {
-				Location: "/",
+				Location: redirectTo,
 			},
 		})
 	}
 
 	const user = await createUser(githubUserId, githubUsername)
+	console.log("New user created:", user.username)
 
 	const sessionToken = generateSessionToken()
 	const session = await createSession(sessionToken, user.id)
 	await setSessionTokenCookie(sessionToken, session.expiresAt)
+
+	console.log("Session created and cookie set. Redirecting to:", redirectTo)
+
+	cookieStore.delete("github_oauth_redirect")
+	cookieStore.delete("github_oauth_state")
+
 	return new Response(null, {
 		status: 302,
 		headers: {
-			Location: "/",
+			Location: redirectTo,
 		},
 	})
 }
 async function createUser(githubUserId: number, githubUsername: string) {
-	const user = await prisma.user.create({
-		data: {
+	const [user] = await db
+		.insert(users)
+		.values({
 			githubId: githubUserId,
 			username: githubUsername,
-		},
-	})
+		})
+		.returning()
 
 	return user
 }

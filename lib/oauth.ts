@@ -1,4 +1,9 @@
 import { GitHub } from "arctic"
 import { env } from "./env"
 
-export const github = new GitHub(env.GITHUB_ID, env.GITHUB_SECRET, null)
+const redirectURI =
+	process.env.NODE_ENV === "production"
+		? `${process.env.APP_URL}/identify/github/callback`
+		: "http://localhost:3000/identify/github/callback"
+
+export const github = new GitHub(env.GITHUB_ID, env.GITHUB_SECRET, redirectURI)
