@@ -1,7 +1,7 @@
 "use client"
 
-import type { User } from "@/lib/session"
 import { createContext, useContext } from "react"
+import type { User } from "@/lib/session"
 
 interface AuthContextType {
 	user: User

@@ -1,3 +1,5 @@
+import { Bot, Brain, Compass, Github, Hammer, Users } from "lucide-react"
+import Link from "next/link"
 import LinkButton from "@/components/link/button"
 import ThemeToggle from "@/components/theme/toggle"
 import {
@@ -8,8 +10,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Bot, Brain, Compass, Github, Hammer, Users } from "lucide-react"
-import Link from "next/link"
 
 const features = [
 	{
