@@ -1,6 +1,6 @@
-import { github } from "@/lib/oauth"
 import { generateState } from "arctic"
 import { cookies } from "next/headers"
+import { github } from "@/lib/oauth"
 
 export async function GET(request: Request): Promise<Response> {
 	const url = new URL(request.url)

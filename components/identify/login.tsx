@@ -1,6 +1,6 @@
 "use client"
-import LinkButton from "@/components/link/button"
 import { usePathname } from "next/navigation"
+import LinkButton from "@/components/link/button"
 
 export default function Signin() {
 	const pathname = usePathname()

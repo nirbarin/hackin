@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm"
 import {
 	boolean,
 	integer,
+	jsonb,
 	pgTable,
 	serial,
 	text,
@@ -16,7 +17,10 @@ export const users = pgTable("user", {
 	avatar: text("avatar"),
 	name: text("name"),
 	username: text("username").notNull().unique(),
-	skills: text("skills").array().notNull().default([]),
+	skills: jsonb("skills")
+		.notNull()
+		.default([])
+		.$type<{ name: string; level: string }[]>(),
 })
 
 // Session table

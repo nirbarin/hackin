@@ -1,6 +1,6 @@
-import { getCurrentSession } from "@/lib/session"
-import type { User } from "@/lib/session"
 import { redirect } from "next/navigation"
+import type { User } from "@/lib/session"
+import { getCurrentSession } from "@/lib/session"
 import { AuthContextProvider } from "./context"
 
 interface AuthProviderProps {
