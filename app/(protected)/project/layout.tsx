@@ -20,19 +20,17 @@ export default async function Layout({
 	const isCollapsed = cookieStore.get("sidebar:state")?.value === "true"
 
 	return (
-		<>
-			<SidebarProvider defaultOpen={!isCollapsed}>
-				<ProjectAppSidebar user={session?.user ?? undefined} />
-				<SidebarInset>
-					<div className="flex flex-col min-h-[100dvh]">
-						<div className="flex w-full items-center pl-5">
-							<SidebarTrigger />
-							<Nav />
-						</div>
-						{children}
+		<SidebarProvider defaultOpen={!isCollapsed}>
+			<ProjectAppSidebar user={session?.user ?? undefined} />
+			<SidebarInset>
+				<div className="flex flex-col min-h-[100dvh]">
+					<div className="flex w-full items-center pl-5">
+						<SidebarTrigger />
+						<Nav />
 					</div>
-				</SidebarInset>
-			</SidebarProvider>
-		</>
+					{children}
+				</div>
+			</SidebarInset>
+		</SidebarProvider>
 	)
 }

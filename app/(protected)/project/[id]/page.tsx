@@ -1,6 +1,7 @@
 import { format } from "date-fns"
 import Link from "next/link"
 import { deleteProject, getProjectWithTeam } from "@/app/actions/project"
+import { IdeaGenerator } from "@/components/project/idea-generator"
 import TeamManagement from "@/components/project/team-management"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -178,6 +179,9 @@ export default async function ProjectPage({
 					)}
 				</CardContent>
 			</Card>
+
+			{/* AI Idea Generator Section */}
+			<IdeaGenerator projectId={project.id} />
 
 			{/* Team Management Section */}
 			<TeamManagement

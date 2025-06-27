@@ -1,9 +1,10 @@
 "use client"
 
-import { Loader2 } from "lucide-react"
+import { ArrowLeft as LeftArrow, Loader2, Plus } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
 import {
 	Sidebar,
 	SidebarContent,
@@ -28,6 +29,8 @@ export type RawApiData = Record<string, unknown>
 export type SidebarConfig = {
 	title: string
 	titleHref?: string
+	prevItemText: string
+	prevItemHref: string
 	newItemText: string
 	newItemHref: string
 	emptyStateText: string
@@ -96,13 +99,18 @@ export function AppSidebar({
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarMenu className="px-5">
-					<SidebarMenuItem>
-						<Link
-							href={config.newItemHref}
-							className="flex items-center justify-center w-full p-2 rounded-md hover:bg-accent border border-accent text-accent-foreground font-semibold text-center"
-							onClick={handleLinkClick}
-						>
-							{config.newItemText}
+					<SidebarMenuItem className="flex flex-col gap-2 pb-2">
+						<Link href={config.prevItemHref} onClick={handleLinkClick}>
+							<Button variant="outline" className="w-full">
+								<LeftArrow />
+								{config.prevItemText}
+							</Button>
+						</Link>
+						<Link href={config.newItemHref} onClick={handleLinkClick}>
+							<Button className="w-full" variant="outline">
+								<Plus />
+								{config.newItemText}
+							</Button>
 						</Link>
 					</SidebarMenuItem>
 
@@ -146,101 +154,12 @@ function defaultIsActiveItem(item: SidebarItem, pathname: string): boolean {
 
 function defaultTransformApiData(data: RawApiData[]): SidebarItem[] {
 	return data.map(item => ({
-		id: (item.id as number | string) || 'unknown',
-		title: (item.title as string) || (item.name as string) || (item.hackathonName as string) || `Item ${item.id || 'unknown'}`,
-		href: (item.href as string) || `/item/${item.id || 'unknown'}`,
+		id: (item.id as number | string) || "unknown",
+		title:
+			(item.title as string) ||
+			(item.name as string) ||
+			(item.hackathonName as string) ||
+			`Item ${item.id || "unknown"}`,
+		href: (item.href as string) || `/item/${item.id || "unknown"}`,
 	}))
-}
-
-// Pre-configured sidebar for projects
-export function ProjectSidebar({ user }: { user: User | undefined }) {
-	const projectConfig: SidebarConfig = {
-		title: "Your Projects",
-		titleHref: "/project",
-		newItemText: "Add New Project?",
-		newItemHref: "/project/new",
-		emptyStateText: "No projects yet",
-		apiEndpoint: "/api/projects",
-	}
-
-	const transformProjectData = (data: RawApiData[]): SidebarItem[] => {
-		return data.map(project => ({
-			id: project.id as number,
-			title: project.hackathonName as string,
-			href: `/project/${project.id}`,
-		}))
-	}
-
-	const isActiveProject = (item: SidebarItem, pathname: string): boolean => {
-		return pathname === `/project/${item.id}`
-	}
-
-	return (
-		<AppSidebar
-			user={user}
-			config={projectConfig}
-			isActiveItem={isActiveProject}
-			transformApiData={transformProjectData}
-		/>
-	)
-}
-
-// Example: Documents sidebar configuration
-export function DocumentsSidebar({ user }: { user: User | undefined }) {
-	const documentsConfig: SidebarConfig = {
-		title: "Documents",
-		titleHref: "/documents",
-		newItemText: "Create Document",
-		newItemHref: "/documents/new",
-		emptyStateText: "No documents yet",
-		apiEndpoint: "/api/documents",
-	}
-
-	const transformDocumentsData = (data: RawApiData[]): SidebarItem[] => {
-		return data.map(doc => ({
-			id: doc.id as number,
-			title: (doc.title as string) || (doc.name as string),
-			href: `/documents/${doc.id}`,
-		}))
-	}
-
-	return (
-		<AppSidebar
-			user={user}
-			config={documentsConfig}
-			transformApiData={transformDocumentsData}
-		/>
-	)
-}
-
-// Example: Teams sidebar configuration
-export function TeamsSidebar({ user }: { user: User | undefined }) {
-	const teamsConfig: SidebarConfig = {
-		title: "Teams",
-		newItemText: "Create Team",
-		newItemHref: "/teams/new",
-		emptyStateText: "No teams yet",
-		apiEndpoint: "/api/teams",
-	}
-
-	const transformTeamsData = (data: RawApiData[]): SidebarItem[] => {
-		return data.map(team => ({
-			id: team.id as number,
-			title: team.name as string,
-			href: `/teams/${team.id}`,
-		}))
-	}
-
-	const isActiveTeam = (item: SidebarItem, pathname: string): boolean => {
-		return pathname.startsWith(`/teams/${item.id}`)
-	}
-
-	return (
-		<AppSidebar
-			user={user}
-			config={teamsConfig}
-			isActiveItem={isActiveTeam}
-			transformApiData={transformTeamsData}
-		/>
-	)
 }
