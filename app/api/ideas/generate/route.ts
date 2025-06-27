@@ -73,7 +73,12 @@ export async function POST(request: NextRequest) {
 		const projectData = project[0]
 
 		// Get team members and their skills
-		let teamMembers: any[] = []
+		let teamMembers: Array<{
+			id: number
+			name: string | null
+			username: string
+			skills: unknown
+		}> = []
 		if (projectData.teamId) {
 			teamMembers = await db
 				.select({
@@ -100,6 +105,16 @@ export async function POST(request: NextRequest) {
 
 			teamMembers = owner
 		}
+
+		// Get existing ideas for this project to avoid duplicates
+		const existingIdeas = await db
+			.select({
+				title: ideas.title,
+				description: ideas.description,
+				content: ideas.content,
+			})
+			.from(ideas)
+			.where(eq(ideas.projectId, projectId))
 
 		// Compile all skills from team members
 		const allSkills = teamMembers.flatMap(
@@ -132,15 +147,30 @@ export async function POST(request: NextRequest) {
 - Team Size: ${context.teamSize} member(s)
 - Team Skills: ${allSkills.map(skill => `${skill.name} (${skill.level})`).join(", ") || "No specific skills listed"}
 
-**Requirements:**
-1. Each idea should be unique and innovative
-2. Consider the team's skill set and size
-3. Ensure the project is feasible within the given timeframe
-4. Align with the hackathon theme and judging criteria
-5. Provide actionable, detailed implementation guidance
-6. Consider market viability and real-world impact
+**IMPORTANT - Existing Ideas to AVOID (Generate completely different concepts):**
+${
+	existingIdeas.length > 0
+		? existingIdeas
+				.map(
+					(idea, index) => `${index + 1}. ${idea.title}: ${idea.description}`,
+				)
+				.join("\n")
+		: "No existing ideas yet"
+}
 
-Generate ideas that are creative, technically sound, and achievable by this specific team.`
+**CRITICAL REQUIREMENTS:**
+1. Each new idea MUST be completely different from the existing ideas listed above
+2. Do NOT generate variations, improvements, or similar concepts to existing ideas
+3. Think of entirely different problem domains, use cases, and approaches
+4. If existing ideas cover certain areas (e.g., web apps, mobile apps, AI tools), explore other domains
+5. Each idea should be unique and innovative
+6. Consider the team's skill set and size
+7. Ensure the project is feasible within the given timeframe
+8. Align with the hackathon theme and judging criteria
+9. Provide actionable, detailed implementation guidance
+10. Consider market viability and real-world impact
+
+Generate ideas that are creative, technically sound, achievable by this specific team, and COMPLETELY DISTINCT from any existing ideas.`
 
 		const openrouter = createOpenRouter({
 			apiKey: env.OPENROUTER_API_KEY,

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
-import { IdeaChatInterface } from "@/components/project/idea-chat-interface"
+import { IdeaChatSimple } from "@/components/idea/chat-simple"
 import { db } from "@/lib/db"
 import { ideas, projects } from "@/lib/schema"
 import { getCurrentSession } from "@/lib/session"
@@ -47,18 +47,5 @@ export default async function IdeaChatPage({ params }: PageProps) {
 		return notFound()
 	}
 
-	// Get all ideas for the project (for sidebar)
-	const allIdeas = await db
-		.select()
-		.from(ideas)
-		.where(eq(ideas.projectId, projectId))
-
-	return (
-		<IdeaChatInterface
-			projectId={projectId}
-			selectedIdea={idea[0]}
-			allIdeas={allIdeas}
-			projectName={project[0].hackathonName}
-		/>
-	)
+	return <IdeaChatSimple projectId={projectId} selectedIdea={idea[0]} />
 }

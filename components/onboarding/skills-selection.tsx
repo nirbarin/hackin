@@ -103,21 +103,34 @@ export const skillsData: Skill[] = [
 	{ id: "kotlin", name: "Kotlin", category: "Mobile" },
 ]
 
-function SubmitButton({ skillsCount }: { skillsCount: number }) {
+function SubmitButton({
+	skillsCount,
+	isInSidebar = false,
+}: {
+	skillsCount: number
+	isInSidebar?: boolean
+}) {
 	const { pending } = useFormStatus()
 
 	return (
 		<div className="flex justify-center mt-8">
 			<Button
 				type="submit"
-				size="lg"
-				className="cursor-pointer min-w-[300px]"
+				size={isInSidebar ? "default" : "lg"}
+				className={cn(
+					"cursor-pointer",
+					isInSidebar ? "w-full text-sm" : "min-w-[300px]",
+				)}
 				variant={skillsCount === 0 ? "outline" : "default"}
 				disabled={pending}
 			>
-				{pending
-					? "Saving..."
-					: `Continue to Projects (${skillsCount} skills selected)`}
+				<span className={isInSidebar ? "text-center leading-tight" : ""}>
+					{pending
+						? "Saving..."
+						: isInSidebar
+							? `Continue (${skillsCount} selected)`
+							: `Continue to Projects (${skillsCount} skills selected)`}
+				</span>
 			</Button>
 		</div>
 	)
@@ -496,40 +509,55 @@ export function SkillsSelectionForm({
 											+ Add custom skill
 										</Button>
 									) : (
-										<div className="w-full max-w-xs space-y-2">
+										<div className="w-full max-w-xs space-y-3">
 											<Input
 												placeholder="Enter skill name"
 												value={customSkillName}
 												onChange={e => setCustomSkillName(e.target.value)}
-												className="mb-2"
 												autoFocus
 											/>
-											<div className="flex gap-2 justify-between">
-												<Button
-													type="button"
-													variant="outline"
-													size="sm"
-													onClick={() => {
-														setShowCustomSkillInput(false)
-														setCustomSkillName("")
-													}}
-												>
-													Cancel
-												</Button>
-												<Button
-													type="button"
-													size="sm"
-													disabled={!customSkillName.trim()}
-													onClick={() => {
-														handleAddCustomSkill(
-															customSkillName,
-															"intermediate",
-														)
-													}}
-												>
-													Add Skill
-												</Button>
+											<div className="space-y-2">
+												<p className="text-sm font-medium">
+													Select skill level:
+												</p>
+												<div className="grid grid-cols-2 gap-2">
+													{skillLevels.map(level => (
+														<Button
+															key={level.value}
+															type="button"
+															variant="outline"
+															size="sm"
+															disabled={!customSkillName.trim()}
+															onClick={() => {
+																handleAddCustomSkill(
+																	customSkillName,
+																	level.value,
+																)
+															}}
+															className="h-auto p-2 flex flex-col items-center gap-1"
+														>
+															<span className="text-sm">
+																{getLevelIcon(level.value)}
+															</span>
+															<span className="text-xs font-medium">
+																{level.label}
+															</span>
+														</Button>
+													))}
+												</div>
 											</div>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() => {
+													setShowCustomSkillInput(false)
+													setCustomSkillName("")
+												}}
+												className="w-full"
+											>
+												Cancel
+											</Button>
 										</div>
 									)}
 								</div>
@@ -552,47 +580,64 @@ export function SkillsSelectionForm({
 								</div>
 							)}
 
-						{showCustomSkillInput && (
-							<div className="mt-4 p-4 bg-muted/30 rounded-lg border">
-								<div className="flex items-center justify-between mb-3">
-									<h4 className="text-sm font-medium">Add Custom Skill</h4>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										className="h-6 w-6 p-0"
-										onClick={() => {
-											setShowCustomSkillInput(false)
-											setCustomSkillName("")
-										}}
-									>
-										<X className="h-3 w-3" />
-									</Button>
+						{showCustomSkillInput &&
+							Object.keys(skillsByCategory).length > 0 && (
+								<div className="mt-4 p-4 bg-muted/30 rounded-lg border">
+									<div className="flex items-center justify-between mb-3">
+										<h4 className="text-sm font-medium">Add Custom Skill</h4>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="h-6 w-6 p-0"
+											onClick={() => {
+												setShowCustomSkillInput(false)
+												setCustomSkillName("")
+											}}
+										>
+											<X className="h-3 w-3" />
+										</Button>
+									</div>
+									<div className="space-y-4">
+										<Input
+											placeholder="Enter skill name"
+											value={customSkillName}
+											onChange={e => setCustomSkillName(e.target.value)}
+											onKeyDown={e => {
+												if (e.key === "Escape") {
+													setShowCustomSkillInput(false)
+													setCustomSkillName("")
+												}
+											}}
+										/>
+										<div className="space-y-3">
+											<p className="text-sm font-medium">Select skill level:</p>
+											<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+												{skillLevels.map(level => (
+													<Button
+														key={level.value}
+														type="button"
+														variant="outline"
+														size="sm"
+														disabled={!customSkillName.trim()}
+														onClick={() => {
+															handleAddCustomSkill(customSkillName, level.value)
+														}}
+														className="h-auto p-3 flex flex-col items-center gap-1"
+													>
+														<span className="text-lg">
+															{getLevelIcon(level.value)}
+														</span>
+														<span className="text-xs font-medium">
+															{level.label}
+														</span>
+													</Button>
+												))}
+											</div>
+										</div>
+									</div>
 								</div>
-								<Input
-									placeholder="Enter skill name"
-									value={customSkillName}
-									onChange={e => setCustomSkillName(e.target.value)}
-									className="mb-3"
-									onKeyDown={e => {
-										if (e.key === "Enter" && customSkillName.trim()) {
-											handleAddCustomSkill(customSkillName, "intermediate")
-										}
-									}}
-								/>
-								<Button
-									type="button"
-									size="sm"
-									disabled={!customSkillName.trim()}
-									onClick={() =>
-										handleAddCustomSkill(customSkillName, "intermediate")
-									}
-									className="w-full"
-								>
-									Add Skill
-								</Button>
-							</div>
-						)}
+							)}
 					</div>
 
 					{/* Selected Skills Sidebar - 1/4 width on desktop */}
@@ -649,8 +694,11 @@ export function SkillsSelectionForm({
 							)}
 
 							{/* Submit button in sidebar for desktop */}
-							<div className="mt-6 hidden lg:bloc">
-								<SubmitButton skillsCount={selectedSkills.length} />
+							<div className="mt-6 hidden lg:block">
+								<SubmitButton
+									skillsCount={selectedSkills.length}
+									isInSidebar={true}
+								/>
 							</div>
 						</div>
 					</div>

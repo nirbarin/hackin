@@ -86,6 +86,16 @@ export async function POST(request: NextRequest) {
 			})
 		}
 
+		if (action === "unselect") {
+			// Unmark the idea as final
+			await db.update(ideas).set({ isFinal: false }).where(eq(ideas.id, ideaId))
+
+			return NextResponse.json({
+				success: true,
+				message: "Idea unselected successfully",
+			})
+		}
+
 		return NextResponse.json({ error: "Invalid action" }, { status: 400 })
 	} catch (error) {
 		console.error("Error updating idea:", error)
