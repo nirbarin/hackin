@@ -5,10 +5,8 @@ export default async function LogoutButton() {
 	const { user } = await getCurrentSession()
 
 	return (
-		<>
-			<LinkButton to="/identify/logout">
-				Log out, {user?.username ?? "User"}
-			</LinkButton>
-		</>
+		<LinkButton to="/identify/logout">
+			Log out, {user?.username ?? "User"}
+		</LinkButton>
 	)
 }

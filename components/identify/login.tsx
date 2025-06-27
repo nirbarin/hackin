@@ -6,12 +6,10 @@ export default function Signin() {
 	const pathname = usePathname()
 
 	return (
-		<>
-			<LinkButton
-				to={`/identify/github/?redirect=${encodeURIComponent(pathname)}`}
-			>
-				Sign in with GitHub
-			</LinkButton>
-		</>
+		<LinkButton
+			to={`/identify/github/?redirect=${encodeURIComponent(pathname)}`}
+		>
+			Sign in with GitHub
+		</LinkButton>
 	)
 }

@@ -6,11 +6,13 @@ export const env = createEnv({
 		GITHUB_ID: z.string().min(1),
 		GITHUB_SECRET: z.string().min(1),
 		DATABASE_URL: z.string().url(),
+		OPENROUTER_API_KEY: z.string().min(1),
 	},
 	client: {},
 	runtimeEnv: {
 		GITHUB_ID: process.env.GITHUB_ID,
 		GITHUB_SECRET: process.env.GITHUB_SECRET,
 		DATABASE_URL: process.env.DATABASE_URL,
+		OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
 	},
 })
