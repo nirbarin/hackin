@@ -155,7 +155,7 @@ export function IdeaSelection({ projectId }: IdeaSelectionProps) {
 					</CardTitle>
 					<div className="flex items-center gap-2">
 						{selectedIdea.isFinal && (
-							<Badge variant="default" className="bg-green-600">
+							<Badge variant="default" className="bg-green-600 dark:bg-green-800 dark:border-green-700">
 								Final Idea
 							</Badge>
 						)}
