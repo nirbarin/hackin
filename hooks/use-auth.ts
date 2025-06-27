@@ -1,1 +1,1 @@
-export { useAuth } from "@/components/auth/context"
+export { useAuth } from "@/components/auth/global-context"

@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
+import { Countdown } from "@/components/cute/counter"
 import { Button } from "@/components/ui/button"
 import { DateTimePicker } from "@/components/ui/datetime-picker"
 import {
@@ -30,6 +31,7 @@ const formSchema = z.object({
 
 export default function ProjectPage() {
 	const [isSubmitted, setIsSubmitted] = useState(false)
+	const [createdProjectId, setCreatedProjectId] = useState<string | null>(null)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -42,21 +44,69 @@ export default function ProjectPage() {
 		},
 	})
 
-	function onSubmit(values: z.infer<typeof formSchema>) {
+	async function onSubmit(values: z.infer<typeof formSchema>) {
 		try {
-			console.log(values)
+			const response = await fetch("/api/new", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					...values,
+					submision_time: values.submision_time.toISOString(),
+				}),
+			})
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}))
+				throw new Error(
+					errorData.error?.message ||
+						"Failed to create project. Please try again.",
+				)
+			}
+
+			const data = await response.json()
+			console.log("Project created:", data)
+			setCreatedProjectId(data.id)
 			setIsSubmitted(true)
+			toast.success("Project created successfully!")
 		} catch (error) {
-			console.error("Form submission error", error)
-			toast.error("Failed to submit the form. Please try again.")
+			console.error("Form submission error:", error)
+			toast.error(
+				error instanceof Error
+					? error.message
+					: "Failed to submit the form. Please try again.",
+			)
 		}
 	}
 
 	return (
 		<>
 			{isSubmitted ? (
-				<div className="flex items-center justify-center min-h-screen">
-					<div className="text-9xl">😊</div>
+				<div className="flex flex-col items-center justify-center min-h-screen gap-4">
+					<div className="text-9xl mb-4">😊</div>
+					<p className="text-xl">Project created successfully!</p>
+					<p className="text-muted-foreground">
+						You will be redirected in{" "}
+						<Countdown
+							from={5}
+							onComplete={() => {
+								if (createdProjectId) {
+									window.location.href = `/project/${createdProjectId}`
+								}
+							}}
+						/>
+					</p>
+					{createdProjectId && (
+						<Button
+							variant="link"
+							onClick={() => {
+								window.location.href = `/project/${createdProjectId}`
+							}}
+						>
+							Go to project now
+						</Button>
+					)}
 				</div>
 			) : (
 				<Form {...form}>

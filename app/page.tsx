@@ -1,7 +1,6 @@
 import { Bot, Brain, Compass, Github, Hammer, Users } from "lucide-react"
 import Link from "next/link"
 import LinkButton from "@/components/link/button"
-import ThemeToggle from "@/components/theme/toggle"
 import {
 	Card,
 	CardContent,
@@ -10,6 +9,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { Nav } from "@/components/user/nav"
 
 const features = [
 	{
@@ -73,20 +73,6 @@ export default async function Index() {
 				<Separator />
 			</div>
 			<Footer />
-		</div>
-	)
-}
-
-export function Nav() {
-	return (
-		<div className="flex w-full text-xl font-semibold p-5 justify-between items-center">
-			<Link href="/" className="hover:opacity-80 transition-opacity">
-				hackin.
-				<span className="text-[#3348B8] dark:text-[#4696ff]">nirbar</span>
-				.in
-			</Link>
-			<div className="grow" />
-			<ThemeToggle />
 		</div>
 	)
 }

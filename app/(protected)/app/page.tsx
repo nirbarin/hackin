@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation"
+
 export default function AppPage() {
-	return <div className="flex flex-1">app</div>
+	return redirect("/onboarding")
 }

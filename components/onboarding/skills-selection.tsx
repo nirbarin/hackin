@@ -1,7 +1,8 @@
 "use client"
 
-import { Award, Filter, Search, X } from "lucide-react"
+import { Award, ChevronDownIcon, Filter, Plus, Search, X } from "lucide-react"
 import * as React from "react"
+import { useFormStatus } from "react-dom"
 import {
 	Accordion,
 	AccordionContent,
@@ -10,9 +11,16 @@ import {
 } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-// Consolidated types and data - no longer importing from skills-selection
+
+// Types
 export interface Skill {
 	id: string
 	name: string
@@ -26,6 +34,7 @@ export interface SelectedSkill {
 
 export type SkillLevel = "beginner" | "intermediate" | "advanced" | "expert"
 
+// Data
 export const skillLevels: {
 	value: SkillLevel
 	label: string
@@ -65,7 +74,6 @@ export const skillsData: Skill[] = [
 	{ id: "angular", name: "Angular", category: "Frontend" },
 	{ id: "svelte", name: "Svelte", category: "Frontend" },
 	{ id: "tailwind", name: "Tailwind CSS", category: "Frontend" },
-
 	// Backend Technologies
 	{ id: "nodejs", name: "Node.js", category: "Backend" },
 	{ id: "python", name: "Python", category: "Backend" },
@@ -75,14 +83,12 @@ export const skillsData: Skill[] = [
 	{ id: "golang", name: "Go", category: "Backend" },
 	{ id: "rust", name: "Rust", category: "Backend" },
 	{ id: "ruby", name: "Ruby", category: "Backend" },
-
 	// Databases
 	{ id: "mysql", name: "MySQL", category: "Database" },
 	{ id: "postgresql", name: "PostgreSQL", category: "Database" },
 	{ id: "mongodb", name: "MongoDB", category: "Database" },
 	{ id: "redis", name: "Redis", category: "Database" },
 	{ id: "sqlite", name: "SQLite", category: "Database" },
-
 	// DevOps & Tools
 	{ id: "docker", name: "Docker", category: "DevOps" },
 	{ id: "kubernetes", name: "Kubernetes", category: "DevOps" },
@@ -90,7 +96,6 @@ export const skillsData: Skill[] = [
 	{ id: "azure", name: "Azure", category: "DevOps" },
 	{ id: "gcp", name: "Google Cloud", category: "DevOps" },
 	{ id: "git", name: "Git", category: "DevOps" },
-
 	// Mobile
 	{ id: "react-native", name: "React Native", category: "Mobile" },
 	{ id: "flutter", name: "Flutter", category: "Mobile" },
@@ -98,25 +103,66 @@ export const skillsData: Skill[] = [
 	{ id: "kotlin", name: "Kotlin", category: "Mobile" },
 ]
 
-interface SkillsSelectionProps {
-	onSkillsChange?: (skills: SelectedSkill[]) => void
-	selectedSkills?: SelectedSkill[]
+function SubmitButton({ skillsCount }: { skillsCount: number }) {
+	const { pending } = useFormStatus()
+
+	return (
+		<div className="flex justify-center mt-8">
+			<Button
+				type="submit"
+				size="lg"
+				className="cursor-pointer min-w-[300px]"
+				variant={skillsCount === 0 ? "outline" : "default"}
+				disabled={pending}
+			>
+				{pending
+					? "Saving..."
+					: `Continue to Projects (${skillsCount} skills selected)`}
+			</Button>
+		</div>
+	)
 }
 
-export function SkillsSelection({
-	onSkillsChange,
-	selectedSkills: initialSkills = [],
-}: SkillsSelectionProps) {
-	const [selectedSkills, setSelectedSkills] =
-		React.useState<SelectedSkill[]>(initialSkills)
+interface SkillsSelectionFormProps {
+	initialSkills: SelectedSkill[]
+	saveSkillsAction: (formData: FormData) => Promise<void>
+}
+
+export function SkillsSelectionForm({
+	initialSkills,
+	saveSkillsAction,
+}: SkillsSelectionFormProps) {
+	// Transform initial skills to SelectedSkill format
+	const transformedInitialSkills: SelectedSkill[] = React.useMemo(() => {
+		if (!Array.isArray(initialSkills)) return []
+
+		return initialSkills
+			.map((skill: SelectedSkill) => {
+				const foundSkill = skillsData.find(s => s.name === skill.skill.name)
+				return {
+					skill: foundSkill || {
+						id: skill.skill.name.toLowerCase().replace(/\s+/g, "-"),
+						name: skill.skill.name,
+						category: "Unknown",
+					},
+					level: skill.level as SkillLevel,
+				}
+			})
+			.filter(skill => skill.skill)
+	}, [initialSkills])
+
+	const [selectedSkills, setSelectedSkills] = React.useState<SelectedSkill[]>(
+		transformedInitialSkills,
+	)
 	const [openItems, setOpenItems] = React.useState<string[]>([])
 	const [searchTerm, setSearchTerm] = React.useState("")
 	const [selectedCategory, setSelectedCategory] = React.useState<string>("all")
+	const [showCustomSkillInput, setShowCustomSkillInput] = React.useState(false)
+	const [customSkillName, setCustomSkillName] = React.useState("")
 
 	// Filter skills based on search and category
 	const filteredSkills = React.useMemo(() => {
 		let filtered = skillsData
-
 		if (searchTerm) {
 			filtered = filtered.filter(
 				skill =>
@@ -124,11 +170,9 @@ export function SkillsSelection({
 					skill.category.toLowerCase().includes(searchTerm.toLowerCase()),
 			)
 		}
-
 		if (selectedCategory !== "all") {
 			filtered = filtered.filter(skill => skill.category === selectedCategory)
 		}
-
 		return filtered
 	}, [searchTerm, selectedCategory])
 
@@ -164,25 +208,33 @@ export function SkillsSelection({
 		const existingIndex = newSelectedSkills.findIndex(
 			s => s.skill.id === skill.id,
 		)
-
 		if (existingIndex >= 0) {
 			newSelectedSkills[existingIndex] = { skill, level }
 		} else {
 			newSelectedSkills.push({ skill, level })
 		}
-
 		setSelectedSkills(newSelectedSkills)
-		onSkillsChange?.(newSelectedSkills)
-
 		// Close the accordion after selecting a level
 		setOpenItems(prev => prev.filter(item => item !== skill.id))
+	}
+
+	const handleAddCustomSkill = (skillName: string, level: SkillLevel) => {
+		if (!skillName.trim()) return
+
+		const customSkill: Skill = {
+			id: `custom-${skillName.toLowerCase().replace(/\s+/g, "-")}`,
+			name: skillName.trim(),
+			category: "Custom",
+		}
+
+		handleSkillSelect(customSkill, level)
+		setCustomSkillName("")
+		setShowCustomSkillInput(false)
 	}
 
 	const handleSkillDeselect = (skillId: string) => {
 		const newSelectedSkills = selectedSkills.filter(s => s.skill.id !== skillId)
 		setSelectedSkills(newSelectedSkills)
-		onSkillsChange?.(newSelectedSkills)
-
 		// Close the accordion item when deselecting
 		setOpenItems(prev => prev.filter(item => item !== skillId))
 	}
@@ -215,234 +267,400 @@ export function SkillsSelection({
 		return colors[level]
 	}
 
+	const handleSubmit = async (formData: FormData) => {
+		// Add the skills data to the form data
+		const skillsToSave = selectedSkills.map(skill => ({
+			name: skill.skill.name,
+			level: skill.level,
+		}))
+
+		formData.append("skills", JSON.stringify(skillsToSave))
+		await saveSkillsAction(formData)
+	}
+
 	return (
-		<div className="w-full max-w-6xl mx-auto p-6">
-			{/* Header */}
-			<div className="mb-8">
-				<h2 className="text-3xl font-bold mb-2">Tell us about your skills</h2>
-				<p className="text-muted-foreground text-lg">
-					Select the technologies you&apos;re familiar with and indicate your
-					level of expertise.
-				</p>
-			</div>
+		<form action={handleSubmit}>
+			<div className="w-full max-w-7xl mx-auto p-6">
+				{/* Header */}
+				<div className="mb-8">
+					<h2 className="text-3xl font-bold mb-2">Tell us about your skills</h2>
+					<p className="text-muted-foreground text-lg">
+						Select the technologies you&apos;re familiar with and indicate your
+						level of expertise.
+					</p>
+				</div>
 
-			{/* Selected Skills Summary - Moved to Top */}
-
-			{/* Skill Level Reference */}
-			<div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg border">
-				<h4 className="font-semibold mb-3 text-sm">Skill Level Reference:</h4>
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-					{skillLevels.map(level => (
-						<div key={level.value} className="flex items-start gap-2">
-							<span className="text-lg mt-0.5">
-								{getLevelIcon(level.value)}
-							</span>
-							<div className="min-w-0">
-								<div className="font-medium text-sm">{level.label}</div>
-								<div className="text-xs text-muted-foreground leading-tight">
-									{level.description}
+				{/* Skill Level Reference */}
+				<div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg border">
+					<h4 className="font-semibold mb-3 text-sm">Skill Level Reference:</h4>
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+						{skillLevels.map(level => (
+							<div key={level.value} className="flex items-start gap-2">
+								<span className="text-lg mt-0.5">
+									{getLevelIcon(level.value)}
+								</span>
+								<div className="min-w-0">
+									<div className="font-medium text-sm">{level.label}</div>
+									<div className="text-xs text-muted-foreground leading-tight">
+										{level.description}
+									</div>
 								</div>
+							</div>
+						))}
+					</div>
+				</div>
+
+				{/* Main Layout - Skills Selection (3/4) + Selected Skills Sidebar (1/4) */}
+				<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+					{/* Skills Selection Panel - 3/4 width on desktop */}
+					<div className="lg:col-span-3">
+						{/* Search and Filter */}
+						<div className="mb-6 flex flex-col sm:flex-row gap-4">
+							<div className="relative flex-1">
+								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+								<Input
+									placeholder="Search skills..."
+									value={searchTerm}
+									onChange={e => setSearchTerm(e.target.value)}
+									className="pl-10"
+								/>
+							</div>
+							<div className="flex items-center gap-2">
+								<Filter className="h-4 w-4 text-muted-foreground" />
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<button className="bg-background border border-input rounded-md text-sm flex w-fit px-2 py-1">
+											{selectedCategory === "all" ? "filter" : selectedCategory}
+											<ChevronDownIcon className="ml-2 h-4 w-4" />
+										</button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent className="w-48">
+										<DropdownMenuItem
+											onClick={() => setSelectedCategory("all")}
+											onSelect={() => setSelectedCategory("all")}
+										>
+											All Categories
+										</DropdownMenuItem>
+										{categories.map(category => (
+											<DropdownMenuItem
+												key={category}
+												onClick={() => setSelectedCategory(category)}
+											>
+												{category}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
 							</div>
 						</div>
-					))}
-				</div>
-			</div>
 
-			{/* Search and Filter */}
-			<div className="mb-6 flex flex-col sm:flex-row gap-4">
-				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-					<Input
-						placeholder="Search skills..."
-						value={searchTerm}
-						onChange={e => setSearchTerm(e.target.value)}
-						className="pl-10"
-					/>
-				</div>
-
-				<div className="flex items-center gap-2">
-					<Filter className="h-4 w-4 text-muted-foreground" />
-					<select
-						value={selectedCategory}
-						onChange={e => setSelectedCategory(e.target.value)}
-						className="px-3 py-2 bg-background border border-input rounded-md text-sm"
-					>
-						<option value="all">All Categories</option>
-						{categories.map(category => (
-							<option key={category} value={category}>
-								{category}
-							</option>
-						))}
-					</select>
-				</div>
-			</div>
-
-			{/* Skills Grid */}
-			{Object.entries(skillsByCategory).map(([category, skills]) => (
-				<div key={category} className="mb-8">
-					<div className="flex items-center gap-2 mb-4">
-						<h3 className="text-lg font-semibold text-primary">{category}</h3>
-						<Badge variant="outline">
-							{skills.filter(skill => isSkillSelected(skill.id)).length} /{" "}
-							{skills.length}
-						</Badge>
-					</div>
-
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start auto-rows-max">
-						{skills.map(skill => {
-							const isSelected = isSkillSelected(skill.id)
-							const selectedLevel = getSelectedSkillLevel(skill.id)
-
-							return (
-								<div
-									key={skill.id}
-									className={cn(
-										"border border-border rounded-lg transition-all duration-200 hover:shadow-md mb-3 overflow-hidden",
-										isSelected
-											? "bg-primary/5 border-primary shadow-sm ring-1 ring-primary/20"
-											: "bg-background hover:border-primary/50",
-									)}
-								>
-									<Accordion
-										type="multiple"
-										value={openItems}
-										onValueChange={handleAccordionValueChange}
-										className="w-full"
-									>
-										<AccordionItem value={skill.id} className="border-0">
-											<AccordionTrigger
+						{/* Skills Grid */}
+						{Object.entries(skillsByCategory).map(([category, skills]) => (
+							<div key={category} className="mb-8">
+								<div className="flex items-center gap-2 mb-4">
+									<h3 className="text-lg font-semibold text-primary">
+										{category}
+									</h3>
+									<Badge variant="outline">
+										{skills.filter(skill => isSkillSelected(skill.id)).length} /{" "}
+										{skills.length}
+									</Badge>
+								</div>
+								<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start auto-rows-max">
+									{skills.map(skill => {
+										const isSelected = isSkillSelected(skill.id)
+										const selectedLevel = getSelectedSkillLevel(skill.id)
+										return (
+											<div
+												key={skill.id}
 												className={cn(
-													"px-4 py-3 hover:no-underline",
-													isSelected && "text-primary font-medium",
+													"border border-border rounded-lg transition-all duration-200 hover:shadow-md mb-3 overflow-hidden",
+													isSelected
+														? "bg-primary/5 border-primary shadow-sm ring-1 ring-primary/20"
+														: "bg-background hover:border-primary/50",
 												)}
 											>
-												<div className="flex items-center justify-between w-full">
-													<div className="flex items-center gap-2">
-														<span>{skill.name}</span>
-														{isSelected && selectedLevel && (
-															<Badge
-																variant="outline"
-																className={cn(
-																	"text-xs",
-																	getLevelColor(selectedLevel),
+												<Accordion
+													type="multiple"
+													value={openItems}
+													onValueChange={handleAccordionValueChange}
+													className="w-full"
+												>
+													<AccordionItem value={skill.id} className="border-0">
+														<AccordionTrigger
+															className={cn(
+																"px-4 py-3 hover:no-underline",
+																isSelected && "text-primary font-medium",
+															)}
+														>
+															<div className="flex items-center justify-between w-full">
+																<div className="flex items-center gap-2">
+																	<span>{skill.name}</span>
+																	{isSelected && selectedLevel && (
+																		<Badge
+																			variant="outline"
+																			className={cn(
+																				"text-xs",
+																				getLevelColor(selectedLevel),
+																			)}
+																		>
+																			{getLevelIcon(selectedLevel)}{" "}
+																			{selectedLevel}
+																		</Badge>
+																	)}
+																</div>
+																{isSelected && (
+																	<div
+																		role="button"
+																		tabIndex={0}
+																		onClick={e => {
+																			e.stopPropagation()
+																			handleSkillDeselect(skill.id)
+																		}}
+																		onKeyDown={e => {
+																			if (e.key === "Enter" || e.key === " ") {
+																				e.stopPropagation()
+																				handleSkillDeselect(skill.id)
+																			}
+																		}}
+																		className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive cursor-pointer rounded flex items-center justify-center transition-colors"
+																	>
+																		<X className="h-4 w-4 stroke-[2.5]" />
+																	</div>
 																)}
-															>
-																{getLevelIcon(selectedLevel)} {selectedLevel}
-															</Badge>
-														)}
-													</div>
-													{isSelected && (
-														<div
-															role="button"
-															tabIndex={0}
-															onClick={e => {
-																e.stopPropagation()
-																handleSkillDeselect(skill.id)
-															}}
-															onKeyDown={e => {
-																if (e.key === "Enter" || e.key === " ") {
-																	e.stopPropagation()
-																	handleSkillDeselect(skill.id)
-																}
-															}}
-															className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive cursor-pointer rounded flex items-center justify-center transition-colors"
-														>
-															<X className="h-4 w-4 stroke-[2.5]" />
-														</div>
-													)}
-												</div>
-											</AccordionTrigger>
-
-											<AccordionContent className="px-4 pb-4">
-												<div className="space-y-2">
-													{skillLevels.map(level => (
-														<Button
-															key={level.value}
-															variant={
-																selectedLevel === level.value
-																	? "default"
-																	: "outline"
-															}
-															size="sm"
-															onClick={() =>
-																handleSkillSelect(skill, level.value)
-															}
-															className="w-full justify-start h-auto p-3"
-														>
-															<div className="flex items-center gap-2">
-																<span className="text-lg">
-																	{getLevelIcon(level.value)}
-																</span>
-																<span className="font-medium">
-																	{level.label}
-																</span>
 															</div>
-														</Button>
-													))}
-												</div>
-											</AccordionContent>
-										</AccordionItem>
-									</Accordion>
+														</AccordionTrigger>
+														<AccordionContent className="px-4 pb-4">
+															<div className="space-y-2">
+																{skillLevels.map(level => (
+																	<Button
+																		key={level.value}
+																		type="button"
+																		variant={
+																			selectedLevel === level.value
+																				? "default"
+																				: "outline"
+																		}
+																		size="sm"
+																		onClick={() =>
+																			handleSkillSelect(skill, level.value)
+																		}
+																		className="w-full justify-start h-auto p-3"
+																	>
+																		<div className="flex items-center gap-2">
+																			<span className="text-lg">
+																				{getLevelIcon(level.value)}
+																			</span>
+																			<span className="font-medium">
+																				{level.label}
+																			</span>
+																		</div>
+																	</Button>
+																))}
+															</div>
+														</AccordionContent>
+													</AccordionItem>
+												</Accordion>
+											</div>
+										)
+									})}
 								</div>
-							)
-						})}
-					</div>
-				</div>
-			))}
-
-			{/* No results message */}
-			{Object.keys(skillsByCategory).length === 0 && (
-				<div className="text-center py-12">
-					<div className="text-muted-foreground mb-4">
-						<Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
-						<p>No skills found matching your search.</p>
-					</div>
-					<Button
-						variant="outline"
-						onClick={() => {
-							setSearchTerm("")
-							setSelectedCategory("all")
-						}}
-					>
-						Clear filters
-					</Button>
-				</div>
-			)}
-
-			{/* Selected Skills Summary */}
-			{selectedSkills.length > 0 && (
-				<div className="mt-8 p-6 bg-muted/30 rounded-lg border">
-					<div className="flex items-center gap-2 mb-4">
-						<Award className="h-5 w-5 text-primary" />
-						<h4 className="font-semibold">
-							Selected Skills ({selectedSkills.length})
-						</h4>
-					</div>
-					<div className="flex flex-wrap gap-2">
-						{selectedSkills.map(({ skill, level }) => (
-							<div
-								key={skill.id}
-								className={cn(
-									"flex items-center gap-2 px-3 py-2 rounded-full text-sm border",
-									getLevelColor(level),
-								)}
-							>
-								<span className="text-sm">{getLevelIcon(level)}</span>
-								<span className="font-medium">{skill.name}</span>
-								<span className="text-xs opacity-75 capitalize">({level})</span>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => handleSkillDeselect(skill.id)}
-									className="h-4 w-4 p-0 hover:text-destructive ml-1"
-								>
-									<X className="h-3 w-3" />
-								</Button>
 							</div>
 						))}
+
+						{/* No results message and Add Custom Skill */}
+						{Object.keys(skillsByCategory).length === 0 && (
+							<div className="text-center py-8 space-y-4">
+								<div className="text-muted-foreground mb-4">
+									<Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
+									<p>No skills found matching your search.</p>
+								</div>
+								<div className="flex flex-col gap-3 items-center">
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => {
+											setSearchTerm("")
+											setSelectedCategory("all")
+										}}
+									>
+										Clear filters
+									</Button>
+									{!showCustomSkillInput ? (
+										<Button
+											type="button"
+											variant="ghost"
+											onClick={() => setShowCustomSkillInput(true)}
+											className="text-sm text-primary"
+										>
+											+ Add custom skill
+										</Button>
+									) : (
+										<div className="w-full max-w-xs space-y-2">
+											<Input
+												placeholder="Enter skill name"
+												value={customSkillName}
+												onChange={e => setCustomSkillName(e.target.value)}
+												className="mb-2"
+												autoFocus
+											/>
+											<div className="flex gap-2 justify-between">
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													onClick={() => {
+														setShowCustomSkillInput(false)
+														setCustomSkillName("")
+													}}
+												>
+													Cancel
+												</Button>
+												<Button
+													type="button"
+													size="sm"
+													disabled={!customSkillName.trim()}
+													onClick={() => {
+														handleAddCustomSkill(
+															customSkillName,
+															"intermediate",
+														)
+													}}
+												>
+													Add Skill
+												</Button>
+											</div>
+										</div>
+									)}
+								</div>
+							</div>
+						)}
+
+						{!showCustomSkillInput &&
+							Object.keys(skillsByCategory).length > 0 && (
+								<div className="mt-6">
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={() => setShowCustomSkillInput(true)}
+										className="w-full gap-2"
+									>
+										<Plus className="h-4 w-4" />
+										Add Custom Skill
+									</Button>
+								</div>
+							)}
+
+						{showCustomSkillInput && (
+							<div className="mt-4 p-4 bg-muted/30 rounded-lg border">
+								<div className="flex items-center justify-between mb-3">
+									<h4 className="text-sm font-medium">Add Custom Skill</h4>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="h-6 w-6 p-0"
+										onClick={() => {
+											setShowCustomSkillInput(false)
+											setCustomSkillName("")
+										}}
+									>
+										<X className="h-3 w-3" />
+									</Button>
+								</div>
+								<Input
+									placeholder="Enter skill name"
+									value={customSkillName}
+									onChange={e => setCustomSkillName(e.target.value)}
+									className="mb-3"
+									onKeyDown={e => {
+										if (e.key === "Enter" && customSkillName.trim()) {
+											handleAddCustomSkill(customSkillName, "intermediate")
+										}
+									}}
+								/>
+								<Button
+									type="button"
+									size="sm"
+									disabled={!customSkillName.trim()}
+									onClick={() =>
+										handleAddCustomSkill(customSkillName, "intermediate")
+									}
+									className="w-full"
+								>
+									Add Skill
+								</Button>
+							</div>
+						)}
+					</div>
+
+					{/* Selected Skills Sidebar - 1/4 width on desktop */}
+					<div className="lg:col-span-1">
+						<div className="bg-background rounded-lg border p-6 sticky top-6">
+							<div className="flex items-center gap-2 mb-4">
+								<Award className="h-5 w-5 text-primary" />
+								<h3 className="font-semibold text-lg">Selected Skills</h3>
+							</div>
+
+							<div className="mb-4">
+								<span className="text-sm text-muted-foreground">
+									{selectedSkills.length} skill
+									{selectedSkills.length !== 1 ? "s" : ""} selected
+								</span>
+							</div>
+
+							{selectedSkills.length === 0 ? (
+								<div className="text-center py-8">
+									<div className="text-muted-foreground text-sm">
+										No skills selected yet. Choose skills from the left panel to get
+										started.
+									</div>
+								</div>
+							) : (
+								<div className="space-y-3 max-h-96 overflow-y-auto">
+									{selectedSkills.map(({ skill, level }) => (
+										<div
+											key={skill.id}
+											className={cn(
+												"flex flex-col gap-2 p-3 rounded-lg border text-sm",
+												getLevelColor(level),
+											)}
+										>
+											<div className="flex items-center justify-between">
+												<span className="font-medium">{skill.name}</span>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													onClick={() => handleSkillDeselect(skill.id)}
+													className="h-6 w-6 p-0 hover:text-destructive"
+												>
+													<X className="h-3 w-3" />
+												</Button>
+											</div>
+											<div className="flex items-center gap-1 text-xs">
+												<span>{getLevelIcon(level)}</span>
+												<span className="capitalize opacity-75">{level}</span>
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+
+							{/* Submit button in sidebar for desktop */}
+							<div className="mt-6 hidden lg:bloc">
+								<SubmitButton skillsCount={selectedSkills.length} />
+							</div>
+						</div>
 					</div>
 				</div>
-			)}
-		</div>
+
+				{/* Submit button for mobile - shown when sidebar is not visible */}
+				<div className="lg:hidden">
+					<SubmitButton skillsCount={selectedSkills.length} />
+				</div>
+			</div>
+		</form>
 	)
 }

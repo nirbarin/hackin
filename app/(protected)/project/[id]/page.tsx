@@ -1,0 +1,157 @@
+import { format } from "date-fns"
+import Link from "next/link"
+import { deleteProject, getProject } from "@/app/actions/project"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+
+export const dynamic = "force-dynamic"
+
+export default async function ProjectPage({ 
+	params 
+}: { 
+	params: Promise<{ id: string }> 
+}) {
+	const { id } = await params
+
+	const projectId = Number.parseInt(id)
+
+	if (Number.isNaN(projectId)) {
+		return (
+			<div className="flex flex-col min-h-[100dvh] p-5 items-center justify-center text-center">
+				<p className="text-destructive text-lg font-medium leading-tight">
+					Invalid project ID
+				</p>
+				<Link
+					href="/home"
+					className="mt-4 block w-full max-w-[200px] text-center text-sm font-medium text-primary underline-offset-4 hover:underline bg-secondary p-4 rounded-lg"
+				>
+					Return to homepage
+				</Link>
+			</div>
+		)
+	}
+
+	const result = await getProject(projectId)
+
+	if (!result.success) {
+		return (
+			<div className="flex flex-col min-h-[100dvh] p-5 items-center justify-center text-center">
+				<p className="text-destructive text-lg font-medium leading-tight">
+					{result.error}
+				</p>
+				<Link
+					href="/home"
+					className="mt-4 block w-full max-w-[200px] text-center text-sm font-medium text-primary underline-offset-4 hover:underline bg-secondary p-4 rounded-lg"
+				>
+					Return to homepage
+				</Link>
+			</div>
+		)
+	}
+
+	const project = result.data
+	if (!project) {
+		return (
+			<div className="flex flex-col min-h-[100dvh] p-5 items-center justify-center text-center">
+				<p className="text-destructive text-lg font-medium leading-tight">
+					Project not found
+				</p>
+				<Link
+					href="/project"
+					className="mt-4 block w-full max-w-[200px] text-center text-sm font-medium text-primary underline-offset-4 hover:underline bg-secondary p-4 rounded-lg"
+				>
+					Return to projects
+				</Link>
+			</div>
+		)
+	}
+
+	return (
+		<div className="flex flex-col min-h-[100dvh] p-4 w-full">
+			<Card className="w-full">
+				<CardHeader>
+					<CardTitle className="text-3xl font-bold text-center">
+						{project.hackathonName}
+					</CardTitle>
+				</CardHeader>
+
+				<CardContent className="space-y-4">
+					<div className="flex flex-col space-y-2">
+						<p className="text-sm text-muted-foreground">Theme</p>
+						<p className="text-lg font-medium">
+							{project.theme || "Not specified"}
+						</p>
+					</div>
+
+					<Separator />
+
+					<div className="flex flex-col space-y-2">
+						<p className="text-sm text-muted-foreground">
+							Tools & Technologies
+						</p>
+						<div className="flex flex-wrap gap-2">
+							{project.suggestedTech ? (
+								project.suggestedTech.split(",").map((tech: string) => (
+									<Badge
+										key={tech.trim()}
+										variant="outline"
+										className="text-sm"
+									>
+										{tech.trim()}
+									</Badge>
+								))
+							) : (
+								<p className="text-muted-foreground">No tools specified</p>
+							)}
+						</div>
+					</div>
+
+					<Separator />
+
+					<div className="flex flex-col space-y-2">
+						<p className="text-sm text-muted-foreground">Submission Time</p>
+						<p className="text-lg font-medium">
+							{project.submissionTime
+								? format(
+										new Date(project.submissionTime),
+										"MMMM d, yyyy 'at' h:mm a",
+									)
+								: "No deadline set"}
+						</p>
+					</div>
+
+					{project.additionalData && (
+						<>
+							<Separator />
+							<div className="flex flex-col space-y-2">
+								<p className="text-sm text-muted-foreground">
+									Additional Information
+								</p>
+								<p className="whitespace-pre-line">{project.additionalData}</p>
+							</div>
+						</>
+					)}
+
+					<div className="pt-4 flex justify-center">
+						<form
+							action={async () => {
+								"use server"
+								const result = await deleteProject(project.id)
+								if (result.success) {
+									const { redirect } = await import("next/navigation")
+									redirect("/project")
+								}
+							}}
+						>
+							<Button type="submit" variant="destructive">
+								Delete Project
+							</Button>
+						</form>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+	)
+}

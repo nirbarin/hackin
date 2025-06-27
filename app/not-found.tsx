@@ -1,6 +1,6 @@
 import { Github, Home, Search } from "lucide-react"
-import { Nav } from "@/app/page"
 import LinkButton from "@/components/link/button"
+import { Nav } from "@/components/user/nav"
 
 export default function NotFound() {
 	return (
