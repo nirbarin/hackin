@@ -1,6 +1,6 @@
 "use client"
 
-import { ExternalLink, Github, Save, User } from "lucide-react"
+import { Edit, ExternalLink, Github, Save, User } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -159,8 +159,14 @@ export default function ProfileForm({ user }: ProfileFormProps) {
 
 			{/* Skills Section */}
 			<Card>
-				<CardHeader>
+				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
 					<CardTitle>Skills & Expertise</CardTitle>
+					<Link href="/onboarding">
+						<Button variant="outline" size="sm">
+							<Edit className="h-4 w-4 mr-2" />
+							Edit Skills
+						</Button>
+					</Link>
 				</CardHeader>
 				<CardContent>
 					{user.skills && user.skills.length > 0 ? (
