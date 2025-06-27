@@ -646,8 +646,8 @@ export function SkillsSelectionForm({
 							{selectedSkills.length === 0 ? (
 								<div className="text-center py-8">
 									<div className="text-muted-foreground text-sm">
-										No skills selected yet. Choose skills from the left panel to get
-										started.
+										No skills selected yet. Choose skills from the left panel to
+										get started.
 									</div>
 								</div>
 							) : (

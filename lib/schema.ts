@@ -50,9 +50,11 @@ export const projects = pgTable("project", {
 		withTimezone: true,
 	}).notNull(),
 	actualTech: text("actual_tech"),
+	// team lead / creator of the project
 	userId: integer("user_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
+	// team this project belongs to, it has other users and the team lead
 	teamId: integer("team_id").references(() => teams.id, {
 		onDelete: "set null",
 	}),

@@ -1,21 +1,41 @@
 import { format } from "date-fns"
 import Link from "next/link"
-import { deleteProject, getProject } from "@/app/actions/project"
+import { deleteProject, getProjectWithTeam } from "@/app/actions/project"
+import TeamManagement from "@/components/project/team-management"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { getCurrentSession } from "@/lib/session"
 
 export const dynamic = "force-dynamic"
 
-export default async function ProjectPage({ 
-	params 
-}: { 
-	params: Promise<{ id: string }> 
+export default async function ProjectPage({
+	params,
+}: {
+	params: Promise<{ id: string }>
 }) {
 	const { id } = await params
 
 	const projectId = Number.parseInt(id)
+
+	// Get current user session
+	const { user } = await getCurrentSession()
+	if (!user) {
+		return (
+			<div className="flex flex-col min-h-[100dvh] p-5 items-center justify-center text-center">
+				<p className="text-destructive text-lg font-medium leading-tight">
+					Unauthorized access
+				</p>
+				<Link
+					href="/home"
+					className="mt-4 block w-full max-w-[200px] text-center text-sm font-medium text-primary underline-offset-4 hover:underline bg-secondary p-4 rounded-lg"
+				>
+					Return to homepage
+				</Link>
+			</div>
+		)
+	}
 
 	if (Number.isNaN(projectId)) {
 		return (
@@ -33,7 +53,7 @@ export default async function ProjectPage({
 		)
 	}
 
-	const result = await getProject(projectId)
+	const result = await getProjectWithTeam(projectId)
 
 	if (!result.success) {
 		return (
@@ -68,8 +88,11 @@ export default async function ProjectPage({
 		)
 	}
 
+	// Check if current user is the project owner
+	const isOwner = project.userId === user.id
+
 	return (
-		<div className="flex flex-col min-h-[100dvh] p-4 w-full">
+		<div className="flex flex-col min-h-[100dvh] p-4 w-full space-y-6">
 			<Card className="w-full">
 				<CardHeader>
 					<CardTitle className="text-3xl font-bold text-center">
@@ -134,24 +157,34 @@ export default async function ProjectPage({
 						</>
 					)}
 
-					<div className="pt-4 flex justify-center">
-						<form
-							action={async () => {
-								"use server"
-								const result = await deleteProject(project.id)
-								if (result.success) {
-									const { redirect } = await import("next/navigation")
-									redirect("/project")
-								}
-							}}
-						>
-							<Button type="submit" variant="destructive">
-								Delete Project
-							</Button>
-						</form>
-					</div>
+					{/* Only show delete button to project owner */}
+					{isOwner && (
+						<div className="pt-4 flex justify-center">
+							<form
+								action={async () => {
+									"use server"
+									const result = await deleteProject(project.id)
+									if (result.success) {
+										const { redirect } = await import("next/navigation")
+										redirect("/project")
+									}
+								}}
+							>
+								<Button type="submit" variant="destructive">
+									Delete Project
+								</Button>
+							</form>
+						</div>
+					)}
 				</CardContent>
 			</Card>
+
+			{/* Team Management Section */}
+			<TeamManagement
+				projectId={project.id}
+				team={project.team}
+				isOwner={isOwner}
+			/>
 		</div>
 	)
 }

@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm"
+import { eq, or } from "drizzle-orm"
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { projects } from "@/lib/schema"
+import { projects, userTeams } from "@/lib/schema"
 import { getCurrentSession } from "@/lib/session"
 
 export async function GET() {
@@ -11,14 +11,24 @@ export async function GET() {
 			return new NextResponse("Unauthorized", { status: 401 })
 		}
 
-		const userProjects = await db.query.projects.findMany({
-			where: eq(projects.userId, user.id),
-			columns: {
-				id: true,
-				hackathonName: true,
-			},
-			orderBy: (projects, { desc }) => [desc(projects.id)],
-		})
+		// Single query to get all projects where user is owner OR team member
+		const userProjects = await db
+			.selectDistinct({
+				id: projects.id,
+				hackathonName: projects.hackathonName,
+			})
+			.from(projects)
+			.leftJoin(userTeams, eq(projects.teamId, userTeams.teamId))
+			.where(
+				or(
+					eq(projects.userId, user.id), // User is project owner
+					eq(userTeams.userId, user.id), // User is team member
+				),
+			)
+			.orderBy(projects.id)
+
+		// Sort by id descending
+		userProjects.sort((a, b) => b.id - a.id)
 
 		return NextResponse.json({ data: userProjects })
 	} catch (error) {
