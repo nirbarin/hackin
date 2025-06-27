@@ -69,7 +69,7 @@ export function DeleteProjectButton({
 					<AlertDialogTitle>Are you sure you want to delete this project?</AlertDialogTitle>
 					<AlertDialogDescription>
 						This action cannot be undone. This will permanently delete the project{" "}
-						<span className="font-semibold">"{projectName}"</span> and remove all
+						<span className="font-semibold">&quot;{projectName}&quot;</span> and remove all
 						associated data.
 					</AlertDialogDescription>
 				</AlertDialogHeader>

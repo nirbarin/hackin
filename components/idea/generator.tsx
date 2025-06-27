@@ -221,10 +221,6 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 		return timeMatch ? timeMatch[1] : "Unknown"
 	}
 
-	const getMainContent = (content: string): string => {
-		return content.split("\n\n**Tech Stack:**")[0]
-	}
-
 	const getDifficultyColor = (difficulty: string) => {
 		switch (difficulty.toLowerCase()) {
 			case "easy":
@@ -363,7 +359,6 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 						const techStack = parseTechStack(idea.content)
 						const difficulty = parseDifficulty(idea.content)
 						const timeEstimate = parseTimeEstimate(idea.content)
-						const _mainContent = getMainContent(idea.content)
 
 						return (
 							<Card

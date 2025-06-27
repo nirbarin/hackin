@@ -2,7 +2,7 @@
 
 import { Lightbulb, MessageCircle, Sparkles, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,7 +27,7 @@ export function IdeaSelection({ projectId }: IdeaSelectionProps) {
 	const [loading, setLoading] = useState(false)
 
 	// Load selected idea from localStorage on mount
-	const loadIdea = async (ideaId: number) => {
+	const loadIdea = useCallback(async (ideaId: number) => {
 		setLoading(true)
 		try {
 			const response = await fetch(`/api/ideas/${ideaId}`)
@@ -41,7 +41,7 @@ export function IdeaSelection({ projectId }: IdeaSelectionProps) {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [projectId])
 
 	useEffect(() => {
 		const savedIdeaId = localStorage.getItem(`selectedIdea_${projectId}`)

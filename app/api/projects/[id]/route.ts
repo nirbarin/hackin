@@ -17,16 +17,17 @@ const updateProjectSchema = z.object({
 
 export async function PUT(
 	request: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
+		const { id } = await params
 		// Get the current session
 		const { user } = await getCurrentSession()
 		if (!user) {
 			return new NextResponse("Unauthorized", { status: 401 })
 		}
 
-		const projectId = Number.parseInt(params.id)
+		const projectId = Number.parseInt(id)
 		if (Number.isNaN(projectId)) {
 			return new NextResponse(
 				JSON.stringify({ error: "Invalid project ID" }),
@@ -87,15 +88,16 @@ export async function PUT(
 
 export async function GET(
 	_request: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
+		const { id } = await params
 		const { user } = await getCurrentSession()
 		if (!user) {
 			return new NextResponse("Unauthorized", { status: 401 })
 		}
 
-		const projectId = Number.parseInt(params.id)
+		const projectId = Number.parseInt(id)
 		if (Number.isNaN(projectId)) {
 			return new NextResponse(
 				JSON.stringify({ error: "Invalid project ID" }),
