@@ -21,10 +21,12 @@ export default async function OnboardingPage({ searchParams }: PageProps) {
 		(Array.isArray(success) && success.includes("true"))
 	) {
 		const countValue = Array.isArray(count) ? count[0] : count
-		return <div className="min-h-screen bg-background flex flex-col">
-			<Nav />
-			<SuccessPage skillsCount={Number.parseInt(countValue || "0")} />
-		</div>
+		return (
+			<div className="min-h-screen bg-background flex flex-col">
+				<Nav />
+				<SuccessPage skillsCount={Number.parseInt(countValue || "0")} />
+			</div>
+		)
 	}
 
 	return (
@@ -32,7 +34,7 @@ export default async function OnboardingPage({ searchParams }: PageProps) {
 			<Nav />
 			<div className="container mx-auto py-8">
 				{error === "true" ||
-					(Array.isArray(error) && error.includes("true")) ? (
+				(Array.isArray(error) && error.includes("true")) ? (
 					<Alert variant="destructive" className="mb-6 max-w-6xl mx-auto">
 						<AlertCircle className="h-4 w-4" />
 						<AlertTitle>Error Saving Skills</AlertTitle>
