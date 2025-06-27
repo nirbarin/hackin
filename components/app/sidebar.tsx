@@ -80,6 +80,20 @@ export function AppSidebar({
 		} else {
 			setLoading(false)
 		}
+
+		// Listen for custom refresh events
+		const handleRefresh = () => {
+			if (user) {
+				setLoading(true)
+				fetchItems()
+			}
+		}
+
+		window.addEventListener("sidebar-refresh", handleRefresh)
+
+		return () => {
+			window.removeEventListener("sidebar-refresh", handleRefresh)
+		}
 	}, [user, config.apiEndpoint, transformApiData])
 
 	const handleLinkClick = () => {

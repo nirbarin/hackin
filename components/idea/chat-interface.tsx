@@ -141,6 +141,29 @@ export function IdeaChatInterface({
 		}
 	}
 
+	const unselectIdea = async (ideaId: number) => {
+		try {
+			const response = await fetch("/api/ideas", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ ideaId, action: "unselect" }),
+			})
+
+			const result = await response.json()
+
+			if (result.success) {
+				toast.success("Idea unselected successfully!")
+				// Refresh the page to update the UI
+				router.refresh()
+			} else {
+				toast.error(result.error || "Failed to unselect idea")
+			}
+		} catch (error) {
+			console.error("Error unselecting idea:", error)
+			toast.error("Failed to unselect idea")
+		}
+	}
+
 	return (
 		<div className="flex h-screen bg-background">
 			{/* Sidebar with Ideas */}
@@ -200,7 +223,7 @@ export function IdeaChatInterface({
 												}`}
 												onClick={() => {
 													if (!isSelected) {
-														router.push(`/project/${projectId}/chat/${idea.id}`)
+														router.push(`/project/${projectId}/${idea.id}`)
 													}
 												}}
 											>
@@ -239,18 +262,34 @@ export function IdeaChatInterface({
 														</Badge>
 													</div>
 
-													{!idea.isFinal && isSelected && (
+													{idea.isFinal && isSelected ? (
 														<Button
 															size="sm"
+															variant="outline"
 															onClick={e => {
 																e.stopPropagation()
-																chooseIdea(idea.id)
+																unselectIdea(idea.id)
 															}}
-															className="mt-2 h-7 text-xs"
+															className="mt-2 h-7 text-xs text-muted-foreground hover:text-destructive"
 														>
-															<Check className="h-3 w-3 mr-1" />
-															Select This Idea
+															<Check className="h-3 w-3 mr-1 rotate-45" />
+															Unselect Idea
 														</Button>
+													) : (
+														!idea.isFinal &&
+														isSelected && (
+															<Button
+																size="sm"
+																onClick={e => {
+																	e.stopPropagation()
+																	chooseIdea(idea.id)
+																}}
+																className="mt-2 h-7 text-xs"
+															>
+																<Check className="h-3 w-3 mr-1" />
+																Select This Idea
+															</Button>
+														)
 													)}
 												</CardHeader>
 											</Card>

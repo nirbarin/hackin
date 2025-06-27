@@ -13,8 +13,10 @@ import type { User } from "@/lib/session"
 export function ProjectAppSidebar({ user }: { user: User | undefined }) {
 	const pathname = usePathname()
 
-	// Determine if we're in a chat context
-	const isInChatContext = pathname.includes("/chat")
+	// Determine context type
+	const isInChatContext =
+		pathname.includes("/chat") && !pathname.includes("/idea")
+	const isInIdeaContext = pathname.includes("/idea")
 
 	// Extract project ID from pathname
 	const projectId = useMemo(() => {
@@ -24,6 +26,18 @@ export function ProjectAppSidebar({ user }: { user: User | undefined }) {
 
 	// Dynamic configuration based on context
 	const config: SidebarConfig = useMemo(() => {
+		if (isInIdeaContext && projectId) {
+			return {
+				title: "Project Ideas",
+				titleHref: `/project/${projectId}/idea`,
+				prevItemText: "go to project",
+				prevItemHref: `/project/${projectId}`,
+				newItemText: "Generate Ideas",
+				newItemHref: `/project/${projectId}/idea`,
+				emptyStateText: "No ideas yet",
+				apiEndpoint: `/api/ideas?projectId=${projectId}`,
+			}
+		}
 		if (isInChatContext && projectId) {
 			return {
 				title: "Chat History",
@@ -31,7 +45,7 @@ export function ProjectAppSidebar({ user }: { user: User | undefined }) {
 				prevItemText: "go to project",
 				prevItemHref: `/project/${projectId}`,
 				newItemText: "New Chat",
-				newItemHref: `/project/${projectId}/chat/new`,
+				newItemHref: `/project/${projectId}/new`,
 				emptyStateText: "No chat sessions yet",
 				apiEndpoint: `/api/chats?projectId=${projectId}`,
 			}
@@ -46,9 +60,18 @@ export function ProjectAppSidebar({ user }: { user: User | undefined }) {
 			emptyStateText: "No projects yet",
 			apiEndpoint: "/api/projects",
 		}
-	}, [isInChatContext, projectId])
+	}, [isInChatContext, isInIdeaContext, projectId])
 
 	const transformData = useMemo(() => {
+		if (isInIdeaContext) {
+			return (data: RawApiData[]): SidebarItem[] => {
+				return data.map(idea => ({
+					id: idea.id as string,
+					title: (idea.title as string) || `Idea ${idea.id}`,
+					href: `/project/${projectId}/idea/${idea.id}`,
+				}))
+			}
+		}
 		if (isInChatContext) {
 			return (data: RawApiData[]): SidebarItem[] => {
 				return data.map(chat => ({
@@ -57,7 +80,7 @@ export function ProjectAppSidebar({ user }: { user: User | undefined }) {
 						(chat.title as string) ||
 						(chat.name as string) ||
 						`Chat ${chat.id}`,
-					href: `/project/${projectId}/chat/${chat.id}`,
+					href: `/project/${projectId}/${chat.id}`,
 				}))
 			}
 		}
@@ -68,18 +91,23 @@ export function ProjectAppSidebar({ user }: { user: User | undefined }) {
 				href: `/project/${project.id}`,
 			}))
 		}
-	}, [isInChatContext, projectId])
+	}, [isInChatContext, isInIdeaContext, projectId])
 
 	const isActiveItem = useMemo(() => {
+		if (isInIdeaContext) {
+			return (item: SidebarItem, pathname: string): boolean => {
+				return pathname === `/project/${projectId}/idea/${item.id}`
+			}
+		}
 		if (isInChatContext) {
 			return (item: SidebarItem, pathname: string): boolean => {
-				return pathname === `/project/${projectId}/chat/${item.id}`
+				return pathname === `/project/${projectId}/${item.id}`
 			}
 		}
 		return (item: SidebarItem, pathname: string): boolean => {
 			return pathname === `/project/${item.id}`
 		}
-	}, [isInChatContext, projectId])
+	}, [isInChatContext, isInIdeaContext, projectId])
 
 	return (
 		<AppSidebar

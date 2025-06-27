@@ -1,14 +1,16 @@
 "use client"
 
 import {
+	ArrowRight,
 	Check,
 	Lightbulb,
 	Loader2,
-	MessageCircle,
 	Sparkles,
+	Trash2,
+	X,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -46,12 +48,7 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 	const [loading, setLoading] = useState(false)
 	const [generating, setGenerating] = useState(false)
 
-	// Load existing ideas
-	useEffect(() => {
-		loadIdeas()
-	}, [loadIdeas])
-
-	const loadIdeas = async () => {
+	const loadIdeas = useCallback(async () => {
 		setLoading(true)
 		try {
 			const response = await fetch(`/api/ideas?projectId=${projectId}`)
@@ -68,7 +65,12 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [projectId])
+
+	// Load existing ideas
+	useEffect(() => {
+		loadIdeas()
+	}, [loadIdeas])
 
 	const generateIdeas = async () => {
 		setGenerating(true)
@@ -82,7 +84,12 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 			const result = await response.json()
 
 			if (result.success) {
-				setIdeas(result.ideas)
+				// Prepend new ideas to existing ones
+				setIdeas(prev => [...result.ideas, ...prev])
+
+				// Trigger sidebar refresh
+				window.dispatchEvent(new CustomEvent("sidebar-refresh"))
+
 				toast.success("Generated 3 new ideas!")
 			} else {
 				toast.error(result.error || "Failed to generate ideas")
@@ -113,6 +120,16 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 						isFinal: idea.id === ideaId,
 					})),
 				)
+
+				// Save selected idea to localStorage
+				const selectedIdea = ideas.find(idea => idea.id === ideaId)
+				if (selectedIdea) {
+					localStorage.setItem(`selectedIdea_${projectId}`, ideaId.toString())
+				}
+
+				// Trigger sidebar refresh
+				window.dispatchEvent(new CustomEvent("sidebar-refresh"))
+
 				toast.success("Idea selected successfully!")
 			} else {
 				toast.error(result.error || "Failed to select idea")
@@ -120,6 +137,72 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 		} catch (error) {
 			console.error("Error choosing idea:", error)
 			toast.error("Failed to select idea")
+		}
+	}
+
+	const unselectIdea = async (ideaId: number) => {
+		try {
+			const response = await fetch("/api/ideas", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ ideaId, action: "unselect" }),
+			})
+
+			const result = await response.json()
+
+			if (result.success) {
+				// Update local state
+				setIdeas(prev =>
+					prev.map(idea => ({
+						...idea,
+						isFinal: false,
+					})),
+				)
+
+				// Remove from localStorage
+				localStorage.removeItem(`selectedIdea_${projectId}`)
+
+				// Trigger sidebar refresh
+				window.dispatchEvent(new CustomEvent("sidebar-refresh"))
+
+				toast.success("Idea unselected successfully!")
+			} else {
+				toast.error(result.error || "Failed to unselect idea")
+			}
+		} catch (error) {
+			console.error("Error unselecting idea:", error)
+			toast.error("Failed to unselect idea")
+		}
+	}
+
+	const deleteIdea = async (ideaId: number) => {
+		try {
+			const response = await fetch(`/api/ideas/${ideaId}`, {
+				method: "DELETE",
+			})
+
+			const result = await response.json()
+
+			if (result.success) {
+				// Remove from local state
+				setIdeas(prev => prev.filter(idea => idea.id !== ideaId))
+
+				// Remove from localStorage if it was selected
+				const selectedIdeaId = localStorage.getItem(`selectedIdea_${projectId}`)
+				if (selectedIdeaId === ideaId.toString()) {
+					localStorage.removeItem(`selectedIdea_${projectId}`)
+				}
+
+				// Trigger sidebar refresh
+				window.dispatchEvent(new CustomEvent("sidebar-refresh"))
+
+				toast.success("Idea deleted successfully!")
+			} else {
+				toast.error(result.error || "Failed to delete idea")
+			}
+		} catch (error) {
+			console.error("Error deleting idea:", error)
+			toast.error("Failed to delete idea")
 		}
 	}
 
@@ -195,17 +278,34 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 		<div className="max-w-7xl mx-auto p-6 space-y-8">
 			{/* Header Section */}
 			<div className="space-y-6">
-				<div className="space-y-2">
-					<h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-						<div className="p-2 bg-primary/10 rounded-lg">
-							<Lightbulb className="h-6 w-6 text-primary" />
-						</div>
-						Project Ideas
-					</h1>
-					<p className="text-lg text-muted-foreground max-w-2xl">
-						AI-generated project ideas tailored to your hackathon context and
-						team expertise
-					</p>
+				<div className="flex items-start justify-between">
+					<div className="space-y-2">
+						<h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+							<div className="p-2 bg-primary/10 rounded-lg">
+								<Lightbulb className="h-6 w-6 text-primary" />
+							</div>
+							Project Ideas
+						</h1>
+						<p className="text-lg text-muted-foreground max-w-2xl">
+							AI-generated project ideas tailored to your hackathon context and
+							team expertise
+						</p>
+					</div>
+
+					{/* Go to Steps button - only show if an idea is selected */}
+					{ideas.some(idea => idea.isFinal) && (
+						<Button
+							onClick={() =>
+								router.push(
+									`/project/${projectId}/idea/${ideas.find(idea => idea.isFinal)?.id}/steps`,
+								)
+							}
+							variant="secondary"
+						>
+							Go to Steps
+							<ArrowRight />
+						</Button>
+					)}
 				</div>
 
 				<Button
@@ -263,17 +363,32 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 						const techStack = parseTechStack(idea.content)
 						const difficulty = parseDifficulty(idea.content)
 						const timeEstimate = parseTimeEstimate(idea.content)
-						const mainContent = getMainContent(idea.content)
+						const _mainContent = getMainContent(idea.content)
 
 						return (
 							<Card
 								key={idea.id}
-								className={`relative transition-all duration-200 hover:shadow-md ${
+								className={`relative flex flex-col transition-all duration-200 hover:shadow-md ${
 									idea.isFinal
-										? "ring-2 ring-green-500 bg-green-50/50 border-green-200"
+										? "ring-2 ring-green-500 border-green-200"
 										: "hover:border-muted-foreground/20"
 								}`}
 							>
+								{/* Delete button */}
+								<div className="absolute top-2 right-2 z-20">
+									<Button
+										variant="ghost"
+										size="sm"
+										onClick={e => {
+											e.stopPropagation()
+											deleteIdea(idea.id)
+										}}
+										className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+									>
+										<Trash2 className="h-4 w-4" />
+									</Button>
+								</div>
+
 								{idea.isFinal && (
 									<div className="absolute -top-2 -right-2 z-10">
 										<div className="bg-green-500 text-white text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
@@ -283,7 +398,17 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 									</div>
 								)}
 
-								<CardHeader className="space-y-4">
+								<CardHeader
+									className="space-y-4 grow cursor-pointer hover:bg-muted/30 transition-colors rounded-t-lg flex flex-col"
+									onClick={() => {
+										// Save idea to localStorage before navigating
+										localStorage.setItem(
+											`selectedIdea_${projectId}`,
+											idea.id.toString(),
+										)
+										router.push(`/project/${projectId}/idea/${idea.id}`)
+									}}
+								>
 									<div className="space-y-2">
 										<CardTitle className="text-lg leading-tight">
 											{idea.title}
@@ -292,6 +417,8 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 											{idea.description}
 										</CardDescription>
 									</div>
+
+									<div className="grow" />
 
 									<div className="flex gap-2 flex-wrap">
 										<Badge
@@ -310,10 +437,6 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 								</CardHeader>
 
 								<CardContent className="space-y-4">
-									<p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-										{mainContent}
-									</p>
-
 									{techStack.length > 0 && (
 										<div className="space-y-2">
 											<Separator />
@@ -345,23 +468,21 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 									)}
 
 									<div className="flex gap-2 pt-2">
-										<Button
-											variant="outline"
-											size="sm"
-											className="flex-1 h-9"
-											onClick={() => {
-												router.push(`/project/${projectId}/chat/${idea.id}`)
-											}}
-										>
-											<MessageCircle className="h-4 w-4 mr-2" />
-											Discuss
-										</Button>
-
-										{!idea.isFinal && (
+										{idea.isFinal ? (
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => unselectIdea(idea.id)}
+												className="w-full h-9 text-muted-foreground hover:text-destructive"
+											>
+												<X className="h-4 w-4 mr-2" />
+												Unselect
+											</Button>
+										) : (
 											<Button
 												size="sm"
 												onClick={() => chooseIdea(idea.id)}
-												className="flex-1 h-9"
+												className="w-full h-9"
 											>
 												<Check className="h-4 w-4 mr-2" />
 												Select
