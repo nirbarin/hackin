@@ -40,27 +40,27 @@ export const skillLevels: {
 	label: string
 	description: string
 }[] = [
-	{
-		value: "beginner",
-		label: "Beginner",
-		description: "Just getting started, basic understanding",
-	},
-	{
-		value: "intermediate",
-		label: "Intermediate",
-		description: "Comfortable with fundamentals, some experience",
-	},
-	{
-		value: "advanced",
-		label: "Advanced",
-		description: "Extensive experience, can handle complex tasks",
-	},
-	{
-		value: "expert",
-		label: "Expert",
-		description: "Mastery level, can teach and lead others",
-	},
-]
+		{
+			value: "beginner",
+			label: "Beginner",
+			description: "Just getting started, basic understanding",
+		},
+		{
+			value: "intermediate",
+			label: "Intermediate",
+			description: "Comfortable with fundamentals, some experience",
+		},
+		{
+			value: "advanced",
+			label: "Advanced",
+			description: "Extensive experience, can handle complex tasks",
+		},
+		{
+			value: "expert",
+			label: "Expert",
+			description: "Mastery level, can teach and lead others",
+		},
+	]
 
 export const skillsData: Skill[] = [
 	// Frontend Technologies
@@ -279,6 +279,20 @@ export function SkillsSelectionForm({
 		}
 		return colors[level]
 	}
+	const levelOrder: SkillLevel[] = [
+		"beginner",
+		"intermediate",
+		"advanced",
+		"expert",
+	]
+	function getNextLevel(current: SkillLevel): SkillLevel {
+		const index = levelOrder.indexOf(current);
+		return levelOrder[Math.min(index + 1, levelOrder.length - 1)];
+	}
+	const getPreviousLevel = (current: SkillLevel): SkillLevel => {
+		const index = levelOrder.indexOf(current);
+		return levelOrder[Math.max(index - 1, 0)];
+	}
 
 	const handleSubmit = async (formData: FormData) => {
 		// Add the skills data to the form data
@@ -444,34 +458,25 @@ export function SkillsSelectionForm({
 															</div>
 														</AccordionTrigger>
 														<AccordionContent className="px-4 pb-4">
-															<div className="space-y-2">
+															<div className="flex flex-wrap gap-2">
 																{skillLevels.map(level => (
 																	<Button
 																		key={level.value}
 																		type="button"
-																		variant={
-																			selectedLevel === level.value
-																				? "default"
-																				: "outline"
-																		}
+																		variant={selectedLevel === level.value ? "default" : "outline"}
 																		size="sm"
-																		onClick={() =>
-																			handleSkillSelect(skill, level.value)
-																		}
-																		className="w-full justify-start h-auto p-3"
+																		onClick={() => handleSkillSelect(skill, level.value)}
+																		className="h-auto px-3 py-2 justify-start whitespace-nowrap"
 																	>
 																		<div className="flex items-center gap-2">
-																			<span className="text-lg">
-																				{getLevelIcon(level.value)}
-																			</span>
-																			<span className="font-medium">
-																				{level.label}
-																			</span>
+																			<span className="text-lg">{getLevelIcon(level.value)}</span>
+																			<span className="font-medium">{level.label}</span>
 																		</div>
 																	</Button>
 																))}
 															</div>
 														</AccordionContent>
+
 													</AccordionItem>
 												</Accordion>
 											</div>
@@ -684,9 +689,45 @@ export function SkillsSelectionForm({
 													<X className="h-3 w-3" />
 												</Button>
 											</div>
+
+
 											<div className="flex items-center gap-1 text-xs">
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													className={`h-6 w-6 p-0 rounded-full  ${level === levelOrder[0] ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted'}`}
+
+													disabled={level === levelOrder[0]}
+													onClick={() => {
+														if (level !== levelOrder[0]) {
+															const previousLevel = getPreviousLevel(level);
+															handleSkillSelect(skill, previousLevel);
+														}
+													}}
+												>
+													<span className="sr-only">Decrease skill level</span>
+													<span className="text-lg font-bold">-</span>
+												</Button>
+
 												<span>{getLevelIcon(level)}</span>
 												<span className="capitalize opacity-75">{level}</span>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													className={`h-6 w-6 p-0 rounded-full ${level === levelOrder[levelOrder.length - 1] ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted'}`}
+													disabled={level === levelOrder[levelOrder.length - 1]}
+													onClick={() => {
+														if (level !== levelOrder[levelOrder.length - 1]) {
+															const nextLevel = getNextLevel(level);
+															handleSkillSelect(skill, nextLevel);
+														}
+													}}
+												>
+													<span className="sr-only">Increase skill level</span>
+													<span className="text-xs font-bold">+</span>
+												</Button>
 											</div>
 										</div>
 									))}
