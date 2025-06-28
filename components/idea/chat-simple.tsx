@@ -21,6 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { Markdown } from "@/components/markdown/render"
 
+
 type Idea = {
 	id: number
 	title: string
