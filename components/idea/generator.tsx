@@ -221,23 +221,19 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 		return timeMatch ? timeMatch[1] : "Unknown"
 	}
 
-	const getMainContent = (content: string): string => {
-		return content.split("\n\n**Tech Stack:**")[0]
-	}
-
 	const getDifficultyColor = (difficulty: string) => {
 		switch (difficulty.toLowerCase()) {
 			case "easy":
 			case "beginner":
-				return "bg-green-50 text-green-700 border-green-200"
+				return "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800"
 			case "medium":
 			case "intermediate":
-				return "bg-yellow-50 text-yellow-700 border-yellow-200"
+				return "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800"
 			case "hard":
 			case "advanced":
-				return "bg-red-50 text-red-700 border-red-200"
+				return "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800"
 			default:
-				return "bg-muted text-muted-foreground"
+				return "bg-muted text-muted-foreground dark:bg-muted/50 dark:border-muted-foreground/20"
 		}
 	}
 
@@ -363,7 +359,6 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 						const techStack = parseTechStack(idea.content)
 						const difficulty = parseDifficulty(idea.content)
 						const timeEstimate = parseTimeEstimate(idea.content)
-						const _mainContent = getMainContent(idea.content)
 
 						return (
 							<Card
@@ -390,8 +385,8 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 								</div>
 
 								{idea.isFinal && (
-									<div className="absolute -top-2 -right-2 z-10">
-										<div className="bg-green-500 text-white text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+									<div className="absolute -top-2 -left-2 z-10">
+										<div className="bg-green-500 dark:bg-green-700 text-white text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
 											<Check className="h-3 w-3" />
 											Selected
 										</div>
@@ -429,7 +424,7 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 										</Badge>
 										<Badge
 											variant="outline"
-											className="bg-blue-50 text-blue-700 border-blue-200"
+											className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800"
 										>
 											{timeEstimate}
 										</Badge>
@@ -449,7 +444,7 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 														<Badge
 															key={index}
 															variant="secondary"
-															className="text-xs bg-muted/50 hover:bg-muted"
+															className="text-xs bg-muted/50 hover:bg-muted dark:bg-muted/30 dark:hover:bg-muted/60"
 														>
 															{tech.trim()}
 														</Badge>
@@ -457,7 +452,7 @@ export function IdeaGenerator({ projectId }: IdeaGeneratorProps) {
 													{techStack.length > 4 && (
 														<Badge
 															variant="secondary"
-															className="text-xs bg-muted/50"
+															className="text-xs bg-muted/50 dark:bg-muted/30"
 														>
 															+{techStack.length - 4}
 														</Badge>

@@ -76,6 +76,7 @@ export const ideas = pgTable("idea", {
 export const ideaChats = pgTable("idea_chat", {
 	id: serial("id").primaryKey(),
 	message: text("message").notNull(),
+	role: text("role").notNull(), // "user" or "assistant"
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),

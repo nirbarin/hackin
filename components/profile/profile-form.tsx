@@ -149,6 +149,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
 							type="submit"
 							disabled={isLoading}
 							className="w-full md:w-auto"
+							suppressHydrationWarning
 						>
 							<Save className="h-4 w-4 mr-2" />
 							{isLoading ? "Saving..." : "Save Changes"}
@@ -162,7 +163,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
 					<CardTitle>Skills & Expertise</CardTitle>
 					<Link href="/onboarding">
-						<Button variant="outline" size="sm">
+						<Button variant="outline" size="sm" suppressHydrationWarning>
 							<Edit className="h-4 w-4 mr-2" />
 							Edit Skills
 						</Button>
@@ -183,7 +184,9 @@ export default function ProfileForm({ user }: ProfileFormProps) {
 							<p>No skills added yet</p>
 							<p className="text-sm">Complete your onboarding to add skills</p>
 							<Link href="/onboarding">
-								<Button variant="link">Start Onboarding</Button>
+								<Button variant="link" suppressHydrationWarning>
+									Start Onboarding
+								</Button>
 							</Link>
 						</div>
 					)}
