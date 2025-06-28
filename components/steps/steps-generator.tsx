@@ -103,13 +103,14 @@ export function StepsGenerator({ projectId, ideaId, idea }: StepsGeneratorProps)
 
 			const result = await response.json()
 
-			if (result.success) {
-				setSections(result.sections)
-				toast.success("Generated implementation plan!")
-			} else {
-				toast.error(result.error || "Failed to generate implementation plan")
-			}
-		} catch (error) {
+		if (result.success) {
+			setSections(result.sections)
+			toast.success("Generated implementation plan!")
+			// Trigger sidebar refresh
+			window.dispatchEvent(new CustomEvent("sidebar-refresh"))
+		} else {
+			toast.error(result.error || "Failed to generate implementation plan")
+		}		} catch (error) {
 			console.error("Error generating sections:", error)
 			toast.error("Failed to generate implementation plan")
 		} finally {
@@ -133,16 +134,17 @@ export function StepsGenerator({ projectId, ideaId, idea }: StepsGeneratorProps)
 
 			const result = await response.json()
 
-			if (result.success) {
-				setSections(prev => [...prev, result.data])
-				setNewSectionTitle("")
-				setNewSectionDescription("")
-				setShowAddSection(false)
-				toast.success("Section added!")
-			} else {
-				toast.error("Failed to add section")
-			}
-		} catch (error) {
+		if (result.success) {
+			setSections(prev => [...prev, result.data])
+			setNewSectionTitle("")
+			setNewSectionDescription("")
+			setShowAddSection(false)
+			toast.success("Section added!")
+			// Trigger sidebar refresh
+			window.dispatchEvent(new CustomEvent("sidebar-refresh"))
+		} else {
+			toast.error("Failed to add section")
+		}		} catch (error) {
 			console.error("Error adding section:", error)
 			toast.error("Failed to add section")
 		}
@@ -265,11 +267,12 @@ export function StepsGenerator({ projectId, ideaId, idea }: StepsGeneratorProps)
 				method: "DELETE",
 			})
 
-			if (response.ok) {
-				setSections(prev => prev.filter(s => s.id !== sectionId))
-				toast.success("Section deleted")
-			}
-		} catch (error) {
+		if (response.ok) {
+			setSections(prev => prev.filter(s => s.id !== sectionId))
+			toast.success("Section deleted")
+			// Trigger sidebar refresh
+			window.dispatchEvent(new CustomEvent("sidebar-refresh"))
+		}		} catch (error) {
 			console.error("Error deleting section:", error)
 			toast.error("Failed to delete section")
 		}
@@ -358,17 +361,17 @@ export function StepsGenerator({ projectId, ideaId, idea }: StepsGeneratorProps)
 
 				{/* Progress Overview */}
 				{sections.length > 0 && (
-					<div className="bg-muted/50 rounded-lg p-6">
-						<div className="flex items-center justify-between mb-4">
+					<div className="bg-muted/50 rounded p-4 border">
+						<div className="flex items-center justify-between mb-3">
 							<div>
-								<div className="text-sm font-medium text-foreground">
+								<div className="text-sm font-medium">
 									{completedTodos} of {totalTodos} tasks completed
 								</div>
-								<div className="text-sm text-muted-foreground">
+								<div className="text-xs text-muted-foreground">
 									{sections.filter(s => s.isCompleted).length} of {sections.length} sections done
 								</div>
 							</div>
-							<div className="text-2xl font-bold text-foreground">
+							<div className="text-lg font-bold">
 								{progressPercentage.toFixed(0)}%
 							</div>
 						</div>
@@ -411,10 +414,10 @@ export function StepsGenerator({ projectId, ideaId, idea }: StepsGeneratorProps)
 
 					{/* Add Section Form */}
 					{showAddSection && (
-						<div className="bg-muted/50 rounded-lg p-6 border border-dashed border-border">
-							<div className="space-y-4">
+						<div className="bg-muted/50 rounded p-4 border border-dashed">
+							<div className="space-y-3">
 								<div>
-									<Label htmlFor="section-title" className="text-sm font-medium text-foreground">Section Title</Label>
+									<Label htmlFor="section-title" className="text-sm font-medium">Section Title</Label>
 									<Input
 										id="section-title"
 										value={newSectionTitle}
@@ -424,7 +427,7 @@ export function StepsGenerator({ projectId, ideaId, idea }: StepsGeneratorProps)
 									/>
 								</div>
 								<div>
-									<Label htmlFor="section-description" className="text-sm font-medium text-foreground">Description (Optional)</Label>
+									<Label htmlFor="section-description" className="text-sm font-medium">Description (Optional)</Label>
 									<Textarea
 										id="section-description"
 										value={newSectionDescription}
@@ -434,7 +437,7 @@ export function StepsGenerator({ projectId, ideaId, idea }: StepsGeneratorProps)
 										className="mt-1"
 									/>
 								</div>
-								<div className="flex gap-3">
+								<div className="flex gap-2">
 									<Button 
 										onClick={addSection} 
 										disabled={!newSectionTitle.trim()}
@@ -457,207 +460,153 @@ export function StepsGenerator({ projectId, ideaId, idea }: StepsGeneratorProps)
 					)}
 
 					{/* Sections List */}
-					<Accordion type="multiple" className="space-y-4">
+					<Accordion type="multiple" className="space-y-2">
 						{sections.map((section) => {
 							const completedTodosInSection = section.todos.filter(t => t.isCompleted).length
-							const progressInSection = section.todos.length > 0 
-								? (completedTodosInSection / section.todos.length) * 100 
-								: 0
 
 							return (
 								<AccordionItem 
 									key={section.id} 
 									value={section.id.toString()}
-									className="bg-card rounded-lg border border-border overflow-hidden"
+									className="border rounded-lg"
 								>
-									<AccordionTrigger className="px-6 py-5 hover:no-underline [&[data-state=open]>div]:border-b [&[data-state=open]>div]:border-border">
-										<div className="flex items-center justify-between w-full mr-4">
-											<div className="flex items-center gap-4">
-												<button
-													onClick={(e) => {
-														e.stopPropagation()
-														toggleSectionCompletion(section.id)
-													}}
-													className="hover:scale-105 transition-transform"
-												>
-													{section.isCompleted ? (
-														<CheckCircle2 className="w-5 h-5 text-green-600" />
-													) : (
-														<Circle className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-													)}
-												</button>
-												
-												<div className="text-left">
-													<div className="flex items-center gap-3 mb-1">
-														<Link 
-															href={`/project/${projectId}/idea/${ideaId}/steps/${section.id}`}
-															className="text-lg font-semibold text-foreground hover:text-muted-foreground transition-colors"
-															onClick={(e) => e.stopPropagation()}
-														>
-															{section.title}
-														</Link>
-														{section.isCompleted && (
-															<span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-																Complete
-															</span>
-														)}
-													</div>
-													{section.description && (
-														<p className="text-sm text-muted-foreground">
-															{section.description}
-														</p>
-													)}
-												</div>
-											</div>
+								<AccordionTrigger className="px-4 py-3 hover:no-underline">
+									<div className="flex items-center justify-between w-full">
+										<div className="flex items-center gap-3">
+											<button
+												onClick={(e) => {
+													e.stopPropagation()
+													toggleSectionCompletion(section.id)
+												}}
+												className="hover:scale-105 transition-transform"
+											>
+												{section.isCompleted ? (
+													<CheckCircle2 className="w-4 h-4 text-green-600" />
+												) : (
+													<Circle className="w-4 h-4 text-muted-foreground" />
+												)}
+											</button>
 											
-											<div className="flex items-center gap-4">
-												<div className="text-right">
-													<div className="text-sm font-medium text-foreground">
-														{completedTodosInSection}/{section.todos.length} tasks
-													</div>
-													<div className="text-xs text-muted-foreground">
-														{progressInSection.toFixed(0)}% complete
-													</div>
-												</div>
-												<Button
-													variant="ghost"
-													size="sm"
-													onClick={(e) => {
-														e.stopPropagation()
-														deleteSection(section.id)
-													}}
-													className="text-muted-foreground hover:text-destructive"
+											<div className="text-left">
+												<Link 
+													href={`/project/${projectId}/idea/${ideaId}/steps/${section.id}`}
+													className="text-sm font-medium text-foreground hover:text-primary"
+													onClick={(e) => e.stopPropagation()}
 												>
-													<Trash2 className="w-4 h-4" />
-												</Button>
+													{section.title}
+												</Link>
 											</div>
 										</div>
 										
-										{/* Progress bar */}
-										<div className="mt-4 w-full">
-											<div className="w-full bg-muted rounded-full h-1">
-												<div 
-													className="bg-primary h-1 rounded-full transition-all duration-300"
-													style={{ width: `${progressInSection}%` }}
-												/>
-											</div>
+										<div className="flex items-center gap-2 text-xs text-muted-foreground">
+											<span>{completedTodosInSection}/{section.todos.length}</span>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={(e) => {
+													e.stopPropagation()
+													deleteSection(section.id)
+												}}
+												className="h-6 w-6 p-0 hover:text-destructive"
+											>
+												<Trash2 className="w-3 h-3" />
+											</Button>
 										</div>
-									</AccordionTrigger>
-									
-									<AccordionContent className="px-6 pb-6">
-										{/* Tasks */}
-										<div className="space-y-3">
-											{section.todos.map((todo, index) => (
-												<div
-													key={todo.id}
-													className={`group flex items-start gap-3 p-4 rounded-lg transition-all ${
+									</div>
+								</AccordionTrigger>									
+								<AccordionContent className="px-4 pb-4">
+									<div className="space-y-2">
+										{section.todos.map((todo) => (
+											<div
+												key={todo.id}
+												className="flex items-start gap-3 p-3 rounded border bg-muted/30"
+											>
+												<button
+													onClick={() => toggleTodoCompletion(todo.id, section.id)}
+													className="mt-0.5"
+												>
+													{todo.isCompleted ? (
+														<CheckCircle2 className="w-4 h-4 text-green-600" />
+													) : (
+														<Circle className="w-4 h-4 text-muted-foreground" />
+													)}
+												</button>
+												
+												<div className="flex-1 min-w-0">
+													<p className={`text-sm ${
 														todo.isCompleted 
-															? 'bg-green-50 border border-green-100 dark:bg-green-900/20 dark:border-green-800' 
-															: 'bg-muted/50'
-													}`}
-												>
-													<button
-														onClick={() => toggleTodoCompletion(todo.id, section.id)}
-														className="mt-0.5 hover:scale-105 transition-transform"
-													>
-														{todo.isCompleted ? (
-															<CheckCircle2 className="w-4 h-4 text-green-600" />
-														) : (
-															<Circle className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-														)}
-													</button>
-													
-													<div className="flex-1 min-w-0">
-														<div className="flex items-center gap-2 mb-1">
-															<span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
-																{(index + 1).toString().padStart(2, '0')}
-															</span>
-															{todo.isCompleted && (
-																<span className="text-xs font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
-																	Done
-																</span>
-															)}
-														</div>
-														<p className={`text-sm font-medium ${
-															todo.isCompleted 
-																? "line-through text-muted-foreground" 
-																: "text-foreground"
-														}`}>
-															{todo.title}
+															? "line-through text-muted-foreground" 
+															: "text-foreground"
+													}`}>
+														{todo.title}
+													</p>
+													{todo.description && (
+														<p className="text-xs text-muted-foreground mt-1">
+															{todo.description}
 														</p>
-														{todo.description && (
-															<p className={`text-xs mt-1 ${
-																todo.isCompleted 
-																	? "line-through text-muted-foreground" 
-																	: "text-muted-foreground"
-															}`}>
-																{todo.description}
-															</p>
-														)}
-													</div>
-
-													<Button
-														variant="ghost"
-														size="sm"
-														onClick={() => deleteTodo(todo.id, section.id)}
-														className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive h-6 w-6 p-0"
-													>
-														<Trash2 className="w-3 h-3" />
-													</Button>
+													)}
 												</div>
-											))}
 
-											{/* Add Todo */}
-											{showAddTodo === section.id ? (
-												<div className="bg-muted/50 rounded-lg p-4 border border-dashed border-border">
-													<div className="space-y-3">
-														<Input
-															value={newTodoTitle}
-															onChange={(e) => setNewTodoTitle(e.target.value)}
-															placeholder="Task title..."
-															className="text-sm"
-														/>
-														<Textarea
-															value={newTodoDescription}
-															onChange={(e) => setNewTodoDescription(e.target.value)}
-															placeholder="Description (optional)..."
-															className="text-sm"
-															rows={2}
-														/>
-														<div className="flex gap-2">
-															<Button 
-																onClick={() => addTodo(section.id)} 
-																disabled={!newTodoTitle.trim()}
-																size="sm"
-															>
-																Add
-															</Button>
-															<Button 
-																variant="ghost" 
-																size="sm"
-																onClick={() => {
-																	setShowAddTodo(null)
-																	setNewTodoTitle("")
-																	setNewTodoDescription("")
-																}}
-															>
-																Cancel
-															</Button>
-														</div>
-													</div>
-												</div>
-											) : (
 												<Button
-													variant="outline"
+													variant="ghost"
 													size="sm"
-													onClick={() => setShowAddTodo(section.id)}
-													className="w-full border-dashed"
+													onClick={() => deleteTodo(todo.id, section.id)}
+													className="h-6 w-6 p-0 opacity-50 hover:opacity-100 hover:text-destructive"
 												>
-													<Plus className="w-3 h-3 mr-2" />
-													Add Task
+													<Trash2 className="w-3 h-3" />
 												</Button>
-											)}
-										</div>
+											</div>
+										))}
+										{/* Add Todo */}
+										{showAddTodo === section.id ? (
+											<div className="bg-muted/50 rounded p-3 border border-dashed">
+												<div className="space-y-3">
+													<Input
+														value={newTodoTitle}
+														onChange={(e) => setNewTodoTitle(e.target.value)}
+														placeholder="Task title..."
+														className="text-sm"
+													/>
+													<Textarea
+														value={newTodoDescription}
+														onChange={(e) => setNewTodoDescription(e.target.value)}
+														placeholder="Description (optional)..."
+														className="text-sm"
+														rows={2}
+													/>
+													<div className="flex gap-2">
+														<Button 
+															onClick={() => addTodo(section.id)} 
+															disabled={!newTodoTitle.trim()}
+															size="sm"
+														>
+															Add
+														</Button>
+														<Button 
+															variant="ghost" 
+															size="sm"
+															onClick={() => {
+																setShowAddTodo(null)
+																setNewTodoTitle("")
+																setNewTodoDescription("")
+															}}
+														>
+															Cancel
+														</Button>
+													</div>
+												</div>
+											</div>
+										) : (
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => setShowAddTodo(section.id)}
+												className="w-full border-dashed"
+											>
+												<Plus className="w-4 h-4 mr-2" />
+												Add Task
+											</Button>
+										)}										</div>
 									</AccordionContent>
 								</AccordionItem>
 							)

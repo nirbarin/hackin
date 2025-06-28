@@ -53,7 +53,7 @@ export default async function SectionPage({ params }: PageProps) {
 	}
 
 	return (
-		<div className="min-h-full p-5">
+		<div className="max-w-5xl mx-auto p-6 space-y-8">
 			<SectionChat 
 				projectId={projectId} 
 				ideaId={ideaId} 
