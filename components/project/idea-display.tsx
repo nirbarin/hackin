@@ -95,15 +95,15 @@ export function IdeaDisplay({ projectId }: IdeaDisplayProps) {
 		switch (difficulty.toLowerCase()) {
 			case "easy":
 			case "beginner":
-				return "bg-green-50 text-green-700 border-green-200"
+				return "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800"
 			case "medium":
 			case "intermediate":
-				return "bg-yellow-50 text-yellow-700 border-yellow-200"
+				return "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800"
 			case "hard":
 			case "advanced":
-				return "bg-red-50 text-red-700 border-red-200"
+				return "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800"
 			default:
-				return "bg-muted text-muted-foreground"
+				return "bg-muted text-muted-foreground dark:bg-muted/50 dark:border-muted-foreground/20"
 		}
 	}
 
@@ -149,7 +149,7 @@ export function IdeaDisplay({ projectId }: IdeaDisplayProps) {
 								</div>
 								<Badge
 									variant="outline"
-									className="bg-green-50 text-green-700 border-green-200"
+									className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800"
 								>
 									Selected
 								</Badge>
@@ -209,7 +209,7 @@ export function IdeaDisplay({ projectId }: IdeaDisplayProps) {
 									</p>
 									<Badge
 										variant="outline"
-										className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+										className="text-xs bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800"
 									>
 										{parseTimeEstimate(selectedIdea.content)}
 									</Badge>

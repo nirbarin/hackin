@@ -1,6 +1,7 @@
 import { format } from "date-fns"
 import Link from "next/link"
-import { deleteProject, getProjectWithTeam } from "@/app/actions/project"
+import { getProjectWithTeam } from "@/app/actions/project"
+import { DeleteProjectButton } from "@/components/project/delete-project-button"
 import { IdeaDisplay } from "@/components/project/idea-display"
 import TeamManagement from "@/components/project/team-management"
 import { Badge } from "@/components/ui/badge"
@@ -158,23 +159,18 @@ export default async function ProjectPage({
 						</>
 					)}
 
-					{/* Only show delete button to project owner */}
+					{/* Only show edit and delete buttons to project owner */}
 					{isOwner && (
-						<div className="pt-4 flex justify-center">
-							<form
-								action={async () => {
-									"use server"
-									const result = await deleteProject(project.id)
-									if (result.success) {
-										const { redirect } = await import("next/navigation")
-										redirect("/project")
-									}
-								}}
-							>
-								<Button type="submit" variant="destructive">
-									Delete Project
-								</Button>
-							</form>
+						<div className="pt-4 flex justify-center gap-3">
+							<Button asChild variant="outline">
+								<Link href={`/project/${project.id}/edit`}>
+									Edit Project
+								</Link>
+							</Button>
+							<DeleteProjectButton
+								projectId={project.id}
+								projectName={project.hackathonName}
+							/>
 						</div>
 					)}
 				</CardContent>

@@ -6,16 +6,17 @@ import { getCurrentSession } from "@/lib/session"
 
 export async function GET(
 	_request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		const { id } = await params
 		const { user } = await getCurrentSession()
 
 		if (!user) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 		}
 
-		const ideaId = Number.parseInt(params.id)
+		const ideaId = Number.parseInt(id)
 
 		if (Number.isNaN(ideaId)) {
 			return NextResponse.json({ error: "Invalid idea ID" }, { status: 400 })
@@ -44,16 +45,17 @@ export async function GET(
 
 export async function DELETE(
 	_request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		const { id } = await params
 		const { user } = await getCurrentSession()
 
 		if (!user) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 		}
 
-		const ideaId = Number.parseInt(params.id)
+		const ideaId = Number.parseInt(id)
 
 		if (Number.isNaN(ideaId)) {
 			return NextResponse.json({ error: "Invalid idea ID" }, { status: 400 })

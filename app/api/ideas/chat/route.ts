@@ -22,6 +22,7 @@ export async function POST(request: Request) {
 		const userMessage = messages[messages.length - 1]?.content
 
 		if (!ideaId || !userMessage) {
+			console.error("Missing required fields:", { ideaId, userMessage })
 			return new Response("Idea ID and message are required", { status: 400 })
 		}
 
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
 			.limit(1)
 
 		if (idea.length === 0) {
+			console.error("Idea not found:", ideaId)
 			return new Response("Idea not found", { status: 404 })
 		}
 
@@ -40,7 +42,11 @@ export async function POST(request: Request) {
 
 		// Get previous chat messages for context
 		const previousChats = await db
-			.select()
+			.select({
+				message: ideaChats.message,
+				role: ideaChats.role,
+				createdAt: ideaChats.createdAt,
+			})
 			.from(ideaChats)
 			.where(eq(ideaChats.ideaId, ideaId))
 			.orderBy(desc(ideaChats.createdAt))
@@ -49,6 +55,7 @@ export async function POST(request: Request) {
 		// Save user message to database
 		await db.insert(ideaChats).values({
 			message: userMessage,
+			role: "user",
 			ideaId: ideaId,
 			userId: user.id,
 		})
@@ -57,8 +64,8 @@ export async function POST(request: Request) {
 		const chatHistory = previousChats
 			.reverse()
 			.map(chat =>
-				chat.message.startsWith("AI: ")
-					? `Assistant: ${chat.message.substring(4)}`
+				chat.role === "assistant"
+					? `Assistant: ${chat.message}`
 					: `User: ${chat.message}`,
 			)
 			.join("\n")
@@ -75,10 +82,12 @@ Title: ${ideaData.title}
 Description: ${ideaData.description}
 Content: ${ideaData.content}
 
-Previous conversation:
-${chatHistory}
+${chatHistory ? `Previous conversation:\n${chatHistory}\n\n` : ""}Respond helpfully to improve and refine this project idea. Be specific and actionable in your suggestions.`
 
-Respond helpfully to improve and refine this project idea. Be specific and actionable in your suggestions.`
+		if (!env.OPENROUTER_API_KEY) {
+			console.error("OPENROUTER_API_KEY is not configured")
+			return new Response("AI service not configured", { status: 500 })
+		}
 
 		const openrouter = createOpenRouter({
 			apiKey: env.OPENROUTER_API_KEY,
@@ -89,18 +98,23 @@ Respond helpfully to improve and refine this project idea. Be specific and actio
 			system: systemPrompt,
 			messages: [{ role: "user", content: userMessage }],
 			onFinish: async completion => {
-				// Save AI response to database after streaming is complete
-				await db.insert(ideaChats).values({
-					message: `AI: ${completion.text}`,
-					ideaId: ideaId,
-					userId: user.id,
-				})
+				try {
+					// Save AI response to database after streaming is complete
+					await db.insert(ideaChats).values({
+						message: completion.text,
+						role: "assistant",
+						ideaId: ideaId,
+						userId: user.id,
+					})
+				} catch (saveError) {
+					console.error("Error saving AI response:", saveError)
+				}
 			},
 		})
 
 		return result.toDataStreamResponse()
 	} catch (error) {
 		console.error("Error in idea chat:", error)
-		return new Response("Failed to process chat message", { status: 500 })
+		return new Response(`Failed to process chat message: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 500 })
 	}
 }

@@ -63,19 +63,51 @@ export async function deleteProject(projectId: number) {
 			}
 		}
 
-		const [deletedProject] = await db
-			.delete(projects)
+		// First, get the project to check ownership and get teamId
+		const [project] = await db
+			.select()
+			.from(projects)
 			.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
-			.returning()
 
-		if (!deletedProject) {
+		if (!project) {
 			return {
 				success: false,
 				error: "Project not found or you don't have permission to delete it",
 			}
 		}
 
-		return { success: true, data: deletedProject }
+		const teamId = project.teamId
+
+		// Use a transaction to ensure proper cleanup
+		const result = await db.transaction(async (tx) => {
+			// Delete the project - database CASCADE constraints will handle:
+			// - ideas and their ideaChats
+			// - steps and their stepChats  
+			// - pitches and their pitchDialogs
+			const [deletedProject] = await tx
+				.delete(projects)
+				.where(eq(projects.id, projectId))
+				.returning()
+
+			// Clean up empty team if it exists
+			if (teamId) {
+				// Check if this team has any other projects
+				const otherProjects = await tx
+					.select({ id: projects.id })
+					.from(projects)
+					.where(eq(projects.teamId, teamId))
+
+				// If no other projects reference this team, delete it and its user associations
+				if (otherProjects.length === 0) {
+					await tx.delete(userTeams).where(eq(userTeams.teamId, teamId))
+					await tx.delete(teams).where(eq(teams.id, teamId))
+				}
+			}
+
+			return deletedProject
+		})
+
+		return { success: true, data: result }
 	} catch (error) {
 		console.error("Error deleting project:", error)
 		return {
@@ -430,6 +462,57 @@ export async function removeTeamMember(projectId: number, userId: number) {
 			success: false,
 			error:
 				error instanceof Error ? error.message : "Failed to remove team member",
+		}
+	}
+}
+
+export async function updateProject(
+	projectId: number,
+	data: {
+		hackathonName: string
+		theme?: string
+		suggestedTech?: string
+		judgingCriteria?: string
+		additionalData?: string
+		submissionTime: Date
+	}
+) {
+	try {
+		const { user } = await getCurrentSession()
+		if (!user) {
+			return {
+				success: false,
+				error: "Unauthorized",
+			}
+		}
+
+		const [updatedProject] = await db
+			.update(projects)
+			.set({
+				hackathonName: data.hackathonName,
+				theme: data.theme || null,
+				suggestedTech: data.suggestedTech || null,
+				judgingCriteria: data.judgingCriteria || null,
+				additionalData: data.additionalData || null,
+				submissionTime: data.submissionTime,
+			})
+			.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
+			.returning()
+
+		if (!updatedProject) {
+			return {
+				success: false,
+				error: "Project not found or you don't have permission to edit it",
+			}
+		}
+
+		return { success: true, data: updatedProject }
+	} catch (error) {
+		console.error("Error updating project:", error)
+		return {
+			success: false,
+			error:
+				error instanceof Error ? error.message : "Failed to update project",
 		}
 	}
 }
