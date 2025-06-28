@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
+import { Markdown } from "@/components/markdown/render"
 
 type Idea = {
 	id: number
@@ -258,9 +259,7 @@ export function IdeaChatSimple({
 								Detailed Content
 							</h3>
 							<div className="prose prose-sm max-w-none text-foreground">
-								<pre className="whitespace-pre-wrap font-sans text-sm">
-									{selectedIdea.content}
-								</pre>
+								<Markdown>{selectedIdea.content}</Markdown>
 							</div>
 						</div>
 					)}
@@ -310,16 +309,16 @@ export function IdeaChatSimple({
 							messages.map(message => (
 								<div
 									key={message.id}
-									className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
-										}`}
+									className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
 								>
 									<div
-										className={`max-w-[80%] rounded-lg px-4 py-2 ${message.role === "user"
+										className={`max-w-[80%] rounded-lg px-4 py-2 ${
+											message.role === "user"
 												? "bg-primary text-primary-foreground"
 												: "bg-muted"
-											}`}
+										}`}
 									>
-										<p className="whitespace-pre-wrap">{message.content}</p>
+										<Markdown>{message.content}</Markdown>
 									</div>
 								</div>
 							))

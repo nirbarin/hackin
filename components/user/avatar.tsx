@@ -36,7 +36,10 @@ export default function UserAvatar() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<button className="focus:outline-none rounded-full">
+				<button
+					className="focus:outline-none rounded-full"
+					suppressHydrationWarning
+				>
 					<GithubAvatar username={user.username} />
 				</button>
 			</DropdownMenuTrigger>
