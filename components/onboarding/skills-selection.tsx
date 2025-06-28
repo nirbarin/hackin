@@ -458,34 +458,25 @@ export function SkillsSelectionForm({
 															</div>
 														</AccordionTrigger>
 														<AccordionContent className="px-4 pb-4">
-															<div className="space-y-2">
+															<div className="flex flex-wrap gap-2">
 																{skillLevels.map(level => (
 																	<Button
 																		key={level.value}
 																		type="button"
-																		variant={
-																			selectedLevel === level.value
-																				? "default"
-																				: "outline"
-																		}
+																		variant={selectedLevel === level.value ? "default" : "outline"}
 																		size="sm"
-																		onClick={() =>
-																			handleSkillSelect(skill, level.value)
-																		}
-																		className="w-full justify-start h-auto p-3"
+																		onClick={() => handleSkillSelect(skill, level.value)}
+																		className="h-auto px-3 py-2 justify-start whitespace-nowrap"
 																	>
 																		<div className="flex items-center gap-2">
-																			<span className="text-lg">
-																				{getLevelIcon(level.value)}
-																			</span>
-																			<span className="font-medium">
-																				{level.label}
-																			</span>
+																			<span className="text-lg">{getLevelIcon(level.value)}</span>
+																			<span className="font-medium">{level.label}</span>
 																		</div>
 																	</Button>
 																))}
 															</div>
 														</AccordionContent>
+
 													</AccordionItem>
 												</Accordion>
 											</div>
