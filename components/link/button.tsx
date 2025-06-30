@@ -1,18 +1,11 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import type { ButtonVariant } from "@/components/ui/button"
+import Button from "@/components/ui/button"
 
 interface LinkButtonProps {
 	to: string
 	children: React.ReactNode
-	variant?:
-		| "link"
-		| "default"
-		| "destructive"
-		| "outline"
-		| "secondary"
-		| "ghost"
-		| null
-		| undefined
+	variant?: ButtonVariant
 	className?: string
 	target?: React.HTMLAttributeAnchorTarget
 }
@@ -26,7 +19,7 @@ export default function LinkButton({
 }: LinkButtonProps) {
 	return (
 		<Button asChild variant={variant} className={className}>
-			<Link href={to} target={target}>
+			<Link href={to} target={target} className="no-underline text-inherit">
 				{children}
 			</Link>
 		</Button>
