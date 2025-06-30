@@ -54,10 +54,7 @@ export function Features() {
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
 				{features.map(feature => (
-					<div
-						key={feature.key}
-						className="card bg-base-100 border-2 border-base-content/40"
-					>
+					<div key={feature.key} className="card bg-accent-content/10">
 						<div className="card-body">
 							<div className="flex items-center gap-4 mb-4">
 								<div className="bg-accent text-accent-content rounded-full p-3 md:p-4">

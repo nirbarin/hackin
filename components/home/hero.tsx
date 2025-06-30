@@ -31,7 +31,7 @@ export function Hero() {
 				>
 					Star on github
 				</LinkButton>
-				<LinkButton to="/app" className="grow text-secondary-content">
+				<LinkButton to="/app" className="grow">
 					Start Buildin
 				</LinkButton>
 			</div>

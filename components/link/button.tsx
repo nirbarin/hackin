@@ -13,7 +13,7 @@ interface LinkButtonProps {
 export default function LinkButton({
 	to,
 	children,
-	variant = "secondary",
+	variant = "accent",
 	className,
 	target = "_self",
 }: LinkButtonProps) {

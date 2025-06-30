@@ -11,7 +11,7 @@ export function PipelineFlowchart() {
 				How does Hackin guide you through every step of the hackathon journey?
 			</p>
 
-			<div className="card bg-base-100 border-2 border-base-content/40 w-full max-w-4xl p-6">
+			<div className="card bg-accent-content/10 w-full max-w-4xl p-6">
 				<div className="flex flex-col items-center gap-4">
 					<Step label="Team Input + Hackathon Info" />
 					<FlowArrow />

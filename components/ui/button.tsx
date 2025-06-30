@@ -9,6 +9,8 @@ const btnvariantClasses = {
 	secondary: "btn btn-secondary",
 	ghost: "btn btn-ghost",
 	link: "btn btn-link link-hover",
+	accent: "btn btn-accent text-accent-content",
+	soft: "btn btn-soft",
 } as const
 
 const sizeClasses = {
