@@ -144,7 +144,7 @@ export default function SkillsPage() {
 						value={searchQuery}
 						onChange={e => setSearchQuery(e.target.value)}
 					/>
-					<Accordion className="space-y-6">
+					<Accordion className="space-y-6" onlyOne>
 						{Object.entries(groupedSkills).map(([category, skills]) => {
 							const selectedCount = skills.filter(
 								s => selectedSkills[s.id],
