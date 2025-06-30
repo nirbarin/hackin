@@ -29,7 +29,7 @@ export default function RootLayout({
 				<meta name="apple-mobile-web-app-title" content="hackin" />
 			</head>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-[100dvh]`}
+				className={`${geistSans.className} ${geistMono.variable} antialiased flex flex-col min-h-[100dvh]`}
 			>
 				<Nav />
 				{children}
